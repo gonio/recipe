@@ -6,7 +6,8 @@ App({
     apiBaseUrl: 'https://115.191.56.155/api', // 开发环境，生产环境需要改成真实域名
     preferredCuisines: [],
     isLoggingIn: false, // 登录中标记，防止并发登录
-    requestQueue: [] // 请求队列，用于登录后重试
+    requestQueue: [], // 请求队列，用于登录后重试
+    pendingRequests: new Map() // 请求去重缓存
   },
 
   onLaunch() {
@@ -150,7 +151,7 @@ App({
     });
   },
 
-  // 获取用户信息
+  // 获取用户信息（带缓存和去重）
   getUserInfo() {
     return new Promise((resolve, reject) => {
       if (!this.globalData.token) {
@@ -158,25 +159,49 @@ App({
         return;
       }
 
+      // 如果已有用户信息，直接返回缓存
+      if (this.globalData.userInfo) {
+        resolve(this.globalData.userInfo);
+        return;
+      }
+
+      // 如果正在请求用户信息，等待请求完成
+      const cacheKey = 'GET:/auth/user';
+      if (this.globalData.pendingRequests.has(cacheKey)) {
+        this.globalData.pendingRequests.get(cacheKey).push({ resolve, reject });
+        return;
+      }
+
+      // 创建新的请求队列
+      this.globalData.pendingRequests.set(cacheKey, [{ resolve, reject }]);
+
       wx.request({
         url: `${this.globalData.apiBaseUrl}/auth/user`,
         header: {
           'Authorization': `Bearer ${this.globalData.token}`
         },
         success: (res) => {
+          const callbacks = this.globalData.pendingRequests.get(cacheKey) || [];
+          this.globalData.pendingRequests.delete(cacheKey);
+
           if (res.data.success) {
             this.globalData.userInfo = res.data.data;
             this.globalData.preferredCuisines = res.data.data.preferredCuisines || [];
-            resolve(res.data.data);
+            callbacks.forEach(cb => cb.resolve(res.data.data));
           } else {
             // token 可能过期了
             if (res.statusCode === 401) {
               this.clearAuthData();
             }
-            reject(new Error(res.data.message || '获取用户信息失败'));
+            const error = new Error(res.data.message || '获取用户信息失败');
+            callbacks.forEach(cb => cb.reject(error));
           }
         },
-        fail: reject
+        fail: (err) => {
+          const callbacks = this.globalData.pendingRequests.get(cacheKey) || [];
+          this.globalData.pendingRequests.delete(cacheKey);
+          callbacks.forEach(cb => cb.reject(err));
+        }
       });
     });
   },
@@ -190,23 +215,70 @@ App({
     wx.removeStorageSync('refreshToken');
   },
 
-  // 封装的请求方法（支持 JWT 认证和自动重试）
+  // 封装的请求方法（支持 JWT 认证、自动重试和请求去重）
   request(options, isRetry = false) {
     return new Promise((resolve, reject) => {
-      const header = options.header || {};
+      const method = options.method || 'GET';
       
       // 添加 Authorization header
+      const header = options.header || {};
       if (this.globalData.token) {
         header['Authorization'] = `Bearer ${this.globalData.token}`;
+      }
+
+      // GET 请求去重：相同 URL 和参数的 GET 请求合并
+      let cacheKey = null;
+      if (method === 'GET' && !isRetry) {
+        const dataStr = options.data ? JSON.stringify(options.data) : '';
+        cacheKey = `${method}:${options.url}:${dataStr}`;
+        
+        if (this.globalData.pendingRequests.has(cacheKey)) {
+          this.globalData.pendingRequests.get(cacheKey).push({ resolve, reject });
+          return;
+        }
+        
+        this.globalData.pendingRequests.set(cacheKey, [{ resolve, reject }]);
       }
 
       const doRequest = () => {
         wx.request({
           url: `${this.globalData.apiBaseUrl}${options.url}`,
-          method: options.method || 'GET',
+          method: method,
           data: options.data,
           header,
           success: async (res) => {
+            // 处理 GET 请求去重回调
+            if (cacheKey) {
+              const callbacks = this.globalData.pendingRequests.get(cacheKey) || [];
+              this.globalData.pendingRequests.delete(cacheKey);
+              
+              if (res.statusCode === 200 && res.data.success) {
+                callbacks.forEach(cb => cb.resolve(res.data));
+              } else if (res.statusCode === 401) {
+                // Token 过期，尝试刷新或重新登录
+                if (!isRetry) {
+                  try {
+                    await this.handleAuthError();
+                    // 重试原请求
+                    const retryResult = await this.request(options, true);
+                    callbacks.forEach(cb => cb.resolve(retryResult));
+                  } catch (error) {
+                    callbacks.forEach(cb => cb.reject(error));
+                  }
+                } else {
+                  this.clearAuthData();
+                  wx.showToast({ title: '登录已过期，请重新登录', icon: 'none' });
+                  const error = new Error('未授权');
+                  callbacks.forEach(cb => cb.reject(error));
+                }
+              } else {
+                const error = new Error(res.data.message || '请求失败');
+                callbacks.forEach(cb => cb.reject(error));
+              }
+              return;
+            }
+
+            // 非 GET 请求或非去重请求的直接处理
             if (res.statusCode === 200 && res.data.success) {
               resolve(res.data);
             } else if (res.statusCode === 401) {
@@ -227,7 +299,15 @@ App({
               reject(new Error(res.data.message || '请求失败'));
             }
           },
-          fail: reject
+          fail: (err) => {
+            if (cacheKey) {
+              const callbacks = this.globalData.pendingRequests.get(cacheKey) || [];
+              this.globalData.pendingRequests.delete(cacheKey);
+              callbacks.forEach(cb => cb.reject(err));
+            } else {
+              reject(err);
+            }
+          }
         });
       };
 

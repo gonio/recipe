@@ -14,10 +14,11 @@ Page({
   // 加载用户偏好
   async loadUserPreferences() {
     try {
-      const res = await app.request({ url: '/auth/user' });
-      if (res.success && res.data.preferredCuisines) {
+      // 使用 getUserInfo 以利用缓存
+      const userInfo = await app.getUserInfo();
+      if (userInfo.preferredCuisines) {
         this.setData({
-          selectedCuisines: res.data.preferredCuisines
+          selectedCuisines: userInfo.preferredCuisines
         });
       }
     } catch (error) {

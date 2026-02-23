@@ -41,11 +41,9 @@ Page({
     this.setData({ loading: true });
     
     try {
-      // 获取新菜谱数量
-      const userRes = await app.request({ url: '/auth/user' });
-      if (userRes.success) {
-        this.setData({ newCount: userRes.data.newRecipesCount || 0 });
-      }
+      // 获取新菜谱数量（使用 getUserInfo 以利用缓存）
+      const userInfo = await app.getUserInfo();
+      this.setData({ newCount: userInfo.newRecipesCount || 0 });
 
       await this.loadRecipes();
     } catch (error) {

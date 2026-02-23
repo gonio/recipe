@@ -22,20 +22,19 @@ Page({
   // 加载用户信息
   async loadUserInfo() {
     try {
-      const res = await app.request({ url: '/auth/user' });
-      if (res.success) {
-        const { favoritesCount, preferredCuisines, newRecipesCount } = res.data;
-        
-        this.setData({
-          userInfo: res.data,
-          stats: {
-            favorites: favoritesCount || 0,
-            cuisines: preferredCuisines?.length || 0,
-            newRecipes: newRecipesCount || 0
-          },
-          preferredCuisinesText: this.formatCuisines(preferredCuisines)
-        });
-      }
+      // 使用 getUserInfo 以利用缓存
+      const userInfo = await app.getUserInfo();
+      const { favoritesCount, preferredCuisines, newRecipesCount } = userInfo;
+      
+      this.setData({
+        userInfo: userInfo,
+        stats: {
+          favorites: favoritesCount || 0,
+          cuisines: preferredCuisines?.length || 0,
+          newRecipes: newRecipesCount || 0
+        },
+        preferredCuisinesText: this.formatCuisines(preferredCuisines)
+      });
     } catch (error) {
       console.error('加载用户信息失败:', error);
     }

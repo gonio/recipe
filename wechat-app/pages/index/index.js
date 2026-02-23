@@ -79,21 +79,19 @@ Page({
     this.setData({ loading: true });
     
     try {
-      // 获取用户信息
-      const userRes = await app.request({ url: '/auth/user' });
-      if (userRes.success) {
-        this.setData({
-          userInfo: userRes.data,
-          newRecipesCount: userRes.data.newRecipesCount || 0,
-          cuisines: userRes.data.preferredCuisines || []
-        });
-      }
+      // 获取用户信息（使用 getUserInfo 以利用缓存）
+      const userInfo = await app.getUserInfo();
+      this.setData({
+        userInfo: userInfo,
+        newRecipesCount: userInfo.newRecipesCount || 0,
+        cuisines: userInfo.preferredCuisines || []
+      });
 
       // 加载收藏菜谱
       await this.loadRecipes();
     } catch (error) {
       console.error('加载数据失败:', error);
-      if (error.message === '未授权') {
+      if (error.message === '未授权' || error.message === '未登录') {
         this.doLogin();
       }
     } finally {
