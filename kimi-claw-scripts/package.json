@@ -1,0 +1,18 @@
+{
+  "name": "recipe-crawler",
+  "version": "1.0.0",
+  "description": "Kimi Claw 自动搜罗菜谱脚本",
+  "main": "crawler.js",
+  "scripts": {
+    "start": "node crawler.js",
+    "daily": "node daily-crawl.js",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.3.1",
+    "node-cron": "^3.0.3",
+    "puppeteer": "^21.0.0"
+  }
+}
