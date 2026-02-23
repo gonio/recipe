@@ -1,0 +1,88 @@
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-header">
+    <view class="search-input-wrapper">
+      <image src="/images/search.png" mode="aspectFit" class="search-icon"/>
+      <input class="search-input" 
+             placeholder="搜索菜谱、食材..." 
+             value="{{keyword}}"
+             focus
+             confirm-type="search"
+             bindinput="onInput"
+             bindconfirm="onSearch"/>
+      <view class="clear-btn" wx:if="{{keyword}}" bindtap="clearSearch">
+        <image src="/images/close-circle.png" mode="aspectFit"/>
+      </view>
+    </view>
+    <text class="cancel-btn" bindtap="goBack">取消</text>
+  </view>
+
+  <!-- 搜索历史 -->
+  <view class="history-section" wx:if="{{!keyword && history.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">搜索历史</text>
+      <text class="clear-text" bindtap="clearHistory">清空</text>
+    </view>
+    <view class="history-list">
+      <text class="history-tag" 
+            wx:for="{{history}}" 
+            wx:key="*this"
+            bindtap="searchByHistory"
+            data-keyword="{{item}}">{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 热门搜索 -->
+  <view class="hot-section" wx:if="{{!keyword}}">
+    <view class="section-header">
+      <text class="section-title">热门搜索</text>
+    </view>
+    <view class="hot-list">
+      <view class="hot-tag {{index < 3 ? 'top' : ''}}" 
+            wx:for="{{hotKeywords}}" 
+            wx:key="*this"
+            bindtap="searchByHistory"
+            data-keyword="{{item}}">
+        <text class="hot-rank">{{index + 1}}</text>
+        <text>{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索结果 -->
+  <view class="result-section" wx:if="{{keyword}}">
+    <view class="result-header">
+      <text>"{{keyword}}" 的搜索结果</text>
+      <text class="result-count">共 {{total}} 个</text>
+    </view>
+    
+    <view class="result-list" wx:if="{{results.length > 0}}">
+      <view class="result-item" 
+            wx:for="{{results}}" 
+            wx:key="_id"
+            bindtap="goToDetail"
+            data-id="{{item._id}}">
+        <image class="result-image {{!item.imageUrl ? 'placeholder' : ''}}" 
+               src="{{item.imageUrl || '/images/default-food.png'}}" 
+               mode="aspectFill"/>
+        <view class="result-info">
+          <view class="result-title">
+            <text class="highlight" wx:if="{{item.name.includes(keyword)}}">{{keyword}}</text>
+            <text wx:else>{{item.name}}</text>
+          </view>
+          <view class="result-meta">
+            <text class="cuisine-tag">{{item.cuisine}}</text>
+            <text class="favorite-count">{{item.favoriteCount}}人收藏</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 无结果 -->
+    <view class="no-result" wx:if="{{!loading && results.length === 0}}">
+      <image src="/images/no-result.png" mode="aspectFit"/>
+      <text>没有找到相关菜谱</text>
+      <text class="tip">换个关键词试试</text>
+    </view>
+  </view>
+</view>

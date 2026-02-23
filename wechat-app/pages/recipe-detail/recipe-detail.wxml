@@ -1,0 +1,103 @@
+<view class="container">
+  <!-- 菜谱图片 -->
+  <view class="hero-section">
+    <image class="hero-image {{!recipe.imageUrl ? 'placeholder' : ''}}" 
+           src="{{recipe.imageUrl || '/images/default-food.png'}}" 
+           mode="aspectFill"/>
+    <view class="hero-overlay">
+      <view class="cuisine-tag">{{recipe.cuisine}}</view>
+    </view>
+    <view class="back-btn" bindtap="goBack">
+      <image src="/images/back.png" mode="aspectFit"/>
+    </view>
+  </view>
+
+  <!-- 菜谱信息 -->
+  <view class="info-section">
+    <text class="recipe-name">{{recipe.name}}</text>
+    
+    <view class="recipe-meta">
+      <view class="meta-item">
+        <image src="/images/time.png" mode="aspectFit"/>
+        <text>{{recipe.cookTime || '30'}}分钟</text>
+      </view>
+      <view class="meta-item">
+        <image src="/images/difficulty.png" mode="aspectFit"/>
+        <text>{{difficultyText[recipe.difficulty - 1] || '简单'}}</text>
+      </view>
+      <view class="meta-item">
+        <image src="/images/fire.png" mode="aspectFit"/>
+        <text>{{recipe.favoriteCount}}人收藏</text>
+      </view>
+    </view>
+
+    <!-- 标签 -->
+    <view class="tags-section" wx:if="{{recipe.tags && recipe.tags.length > 0}}">
+      <text class="tag" wx:for="{{recipe.tags}}" wx:key="*this">{{item}}</text>
+    </view>
+
+    <!-- 收藏按钮 -->
+    <view class="favorite-action {{isFavorite ? 'active' : ''}}" bindtap="toggleFavorite">
+      <image src="{{isFavorite ? '/images/heart-filled-white.png' : '/images/heart-white.png'}}" mode="aspectFit"/>
+      <text>{{isFavorite ? '已收藏' : '收藏菜谱'}}</text>
+    </view>
+  </view>
+
+  <!-- 食材清单 -->
+  <view class="section ingredients-section">
+    <view class="section-header">
+      <text class="section-title">食材清单</text>
+      <text class="section-count">{{recipe.ingredients.length || 0}}种食材</text>
+    </view>
+    <view class="ingredients-list">
+      <view class="ingredient-item" wx:for="{{recipe.ingredients}}" wx:key="name">
+        <view class="ingredient-dot"></view>
+        <text class="ingredient-name">{{item.name}}</text>
+        <text class="ingredient-amount">{{item.amount}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 烹饪步骤 -->
+  <view class="section steps-section">
+    <view class="section-header">
+      <text class="section-title">烹饪步骤</text>
+      <text class="section-count">共 {{recipe.steps.length || 0}} 步</text>
+    </view>
+    <view class="steps-list">
+      <view class="step-item" wx:for="{{recipe.steps}}" wx:key="order">
+        <view class="step-number">{{item.order}}</view>
+        <view class="step-content">
+          <image class="step-image" 
+                 wx:if="{{item.imageUrl}}"
+                 src="{{item.imageUrl}}" 
+                 mode="aspectFill"/>
+          <text class="step-text">{{item.description}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 来源信息 -->
+  <view class="source-section" wx:if="{{recipe.source}}">
+    <text class="source-label">菜谱来源：{{recipe.source}}</text>
+  </view>
+
+  <!-- 底部间距 -->
+  <view class="bottom-spacer"></view>
+</view>
+
+<!-- 底部固定操作栏 -->
+<view class="bottom-bar">
+  <view class="bottom-action share" bindtap="shareRecipe">
+    <image src="/images/share.png" mode="aspectFit"/>
+    <text>分享</text>
+  </view>
+  <view class="bottom-action {{isFavorite ? 'favorited' : 'favorite'}}" bindtap="toggleFavorite">
+    <image src="{{isFavorite ? '/images/heart-filled.png' : '/images/heart.png'}}" mode="aspectFit"/>
+    <text>{{isFavorite ? '已收藏' : '收藏'}}</text>
+  </view>
+  <view class="bottom-action start" bindtap="startCooking">
+    <text>开始烹饪</text>
+  </view>
+</view>

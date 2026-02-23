@@ -1,0 +1,136 @@
+/* 偏好设置样式 */
+
+.page-header {
+  margin-bottom: 40rpx;
+}
+
+.page-title {
+  display: block;
+  font-size: 44rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12rpx;
+}
+
+.page-desc {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+/* 已选择区域 */
+.selected-section {
+  background: var(--bg-white);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 20rpx var(--shadow-color);
+}
+
+.section-label {
+  display: block;
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  margin-bottom: 20rpx;
+}
+
+.selected-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.selected-tag {
+  display: flex;
+  align-items: center;
+  background: var(--primary-color);
+  color: white;
+  padding: 16rpx 24rpx;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+}
+
+.remove-btn {
+  width: 32rpx;
+  height: 32rpx;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 12rpx;
+}
+
+.remove-btn image {
+  width: 16rpx;
+  height: 16rpx;
+}
+
+/* 所有菜系 */
+.all-cuisines {
+  background: var(--bg-white);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 140rpx;
+  box-shadow: 0 4rpx 20rpx var(--shadow-color);
+}
+
+.cuisine-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20rpx;
+}
+
+.cuisine-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30rpx 20rpx;
+  background: var(--bg-primary);
+  border-radius: 16rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.cuisine-item.selected {
+  background: var(--primary-light);
+  border-color: var(--primary-color);
+}
+
+.cuisine-item text {
+  font-size: 28rpx;
+  color: var(--text-primary);
+}
+
+.cuisine-item.selected text {
+  color: var(--primary-dark);
+  font-weight: 500;
+}
+
+.check-icon {
+  position: absolute;
+  top: 12rpx;
+  right: 12rpx;
+  width: 28rpx;
+  height: 28rpx;
+}
+
+/* 底部按钮 */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-white);
+  padding: 20rpx 30rpx 40rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.bottom-bar .btn {
+  width: 100%;
+}
+
+.bottom-bar .btn.disabled {
+  opacity: 0.6;
+}
