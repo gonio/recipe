@@ -1,0 +1,42 @@
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="page-title">偏好菜系</text>
+    <text class="page-desc">选择你喜欢的菜系，我们会为你推荐相关菜谱</text>
+  </view>
+
+  <!-- 已选择的菜系 -->
+  <view class="selected-section" wx:if="{{selectedCuisines.length > 0}}">
+    <text class="section-label">已选择</text>
+    <view class="selected-list">
+      <view class="selected-tag" wx:for="{{selectedCuisines}}" wx:key="*this">
+        <text>{{item}}</text>
+        <view class="remove-btn" bindtap="removeCuisine" data-cuisine="{{item}}">
+          <image src="/images/close.png" mode="aspectFit"/>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 所有菜系 -->
+  <view class="all-cuisines">
+    <text class="section-label">所有菜系</text>
+    <view class="cuisine-grid">
+      <view class="cuisine-item {{selectedCuisines.includes(item) ? 'selected' : ''}}" 
+            wx:for="{{allCuisines}}" 
+            wx:key="*this"
+            bindtap="toggleCuisine"
+            data-cuisine="{{item}}">
+        <text>{{item}}</text>
+        <image class="check-icon" wx:if="{{selectedCuisines.includes(item)}}" src="/images/check.png" mode="aspectFit"/>
+      </view>
+    </view>
+  </view>
+
+  <!-- 保存按钮 -->
+  <view class="bottom-bar">
+    <view class="btn btn-primary {{saving ? 'disabled' : ''}}" bindtap="savePreferences">
+      <text>{{saving ? '保存中...' : '保存设置'}}</text>
+    </view>
+  </view>
+</view>

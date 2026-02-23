@@ -1,0 +1,361 @@
+/* 详情页面样式 */
+
+/* 顶部大图 */
+.hero-section {
+  position: relative;
+  width: 100%;
+  height: 500rpx;
+  margin: -30rpx -30rpx 0;
+  width: calc(100% + 60rpx);
+}
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+}
+
+.hero-image.placeholder {
+  background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+}
+
+.hero-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200rpx;
+  background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+  display: flex;
+  align-items: flex-end;
+  padding: 30rpx;
+}
+
+.cuisine-tag {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--text-primary);
+  padding: 12rpx 28rpx;
+  border-radius: 28rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+.back-btn {
+  position: absolute;
+  top: 60rpx;
+  left: 30rpx;
+  width: 72rpx;
+  height: 72rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+.back-btn image {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+/* 信息区域 */
+.info-section {
+  background: var(--bg-white);
+  border-radius: 30rpx 30rpx 0 0;
+  margin: -40rpx -30rpx 30rpx;
+  padding: 40rpx 30rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.recipe-name {
+  display: block;
+  font-size: 48rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 24rpx;
+}
+
+.recipe-meta {
+  display: flex;
+  gap: 40rpx;
+  margin-bottom: 24rpx;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+.meta-item image {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 10rpx;
+  opacity: 0.6;
+}
+
+/* 标签 */
+.tags-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 30rpx;
+}
+
+.tag {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  padding: 10rpx 24rpx;
+  border-radius: 24rpx;
+  font-size: 24rpx;
+}
+
+/* 收藏操作 */
+.favorite-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28rpx;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  border-radius: 44rpx;
+  box-shadow: 0 8rpx 24rpx rgba(66, 165, 245, 0.3);
+}
+
+.favorite-action.active {
+  background: linear-gradient(135deg, #EF5350, #E53935);
+  box-shadow: 0 8rpx 24rpx rgba(229, 57, 53, 0.3);
+}
+
+.favorite-action image {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 12rpx;
+}
+
+.favorite-action text {
+  color: white;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+/* 通用区块 */
+.section {
+  background: var(--bg-white);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 4rpx 20rpx var(--shadow-color);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.section-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  position: relative;
+  padding-left: 20rpx;
+}
+
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6rpx;
+  height: 32rpx;
+  background: var(--primary-color);
+  border-radius: 3rpx;
+}
+
+.section-count {
+  font-size: 24rpx;
+  color: var(--text-light);
+}
+
+/* 食材列表 */
+.ingredients-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.ingredient-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.ingredient-item:last-child {
+  border-bottom: none;
+}
+
+.ingredient-dot {
+  width: 12rpx;
+  height: 12rpx;
+  background: var(--primary-color);
+  border-radius: 50%;
+  margin-right: 20rpx;
+}
+
+.ingredient-name {
+  flex: 1;
+  font-size: 30rpx;
+  color: var(--text-primary);
+}
+
+.ingredient-amount {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+}
+
+/* 步骤列表 */
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+.step-item {
+  display: flex;
+  gap: 20rpx;
+}
+
+.step-number {
+  width: 56rpx;
+  height: 56rpx;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.step-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.step-image {
+  width: 100%;
+  height: 300rpx;
+  border-radius: 16rpx;
+  object-fit: cover;
+}
+
+.step-text {
+  font-size: 30rpx;
+  color: var(--text-primary);
+  line-height: 1.8;
+}
+
+/* 来源信息 */
+.source-section {
+  text-align: center;
+  padding: 30rpx;
+}
+
+.source-label {
+  font-size: 24rpx;
+  color: var(--text-light);
+}
+
+.bottom-spacer {
+  height: 140rpx;
+}
+
+/* 底部固定栏 */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-white);
+  display: flex;
+  padding: 20rpx 30rpx 40rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
+  z-index: 100;
+}
+
+.bottom-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+}
+
+.bottom-action.share {
+  width: 120rpx;
+  flex-direction: column;
+  padding: 16rpx;
+  margin-right: 20rpx;
+}
+
+.bottom-action.share image {
+  width: 36rpx;
+  height: 36rpx;
+  margin-bottom: 4rpx;
+}
+
+.bottom-action.share text {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+}
+
+.bottom-action.favorite {
+  background: var(--primary-light);
+  margin-right: 20rpx;
+  padding: 24rpx 40rpx;
+}
+
+.bottom-action.favorite image {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 12rpx;
+}
+
+.bottom-action.favorite text {
+  color: var(--primary-dark);
+  font-weight: 500;
+}
+
+.bottom-action.favorited {
+  background: #FFEBEE;
+  margin-right: 20rpx;
+  padding: 24rpx 40rpx;
+}
+
+.bottom-action.favorited image {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 12rpx;
+}
+
+.bottom-action.favorited text {
+  color: #E53935;
+  font-weight: 500;
+}
+
+.bottom-action.start {
+  flex: 1;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 8rpx 24rpx rgba(66, 165, 245, 0.3);
+}
