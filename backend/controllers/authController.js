@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const { User, Recipe } = require('../models');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 
@@ -29,29 +29,29 @@ exports.wechatLogin = async (req, res) => {
     }
 
     // 查找或创建用户
-    let user = await User.findOne({ openid });
-    
-    if (!user) {
-      user = new User({
+    let [user, created] = await User.findOrCreate({
+      where: { openid },
+      defaults: {
         openid,
         nickname: userInfo?.nickName || '',
         avatarUrl: userInfo?.avatarUrl || '',
-        preferredCuisines: ['家常菜'] // 默认菜系
-      });
-      await user.save();
-    } else {
-      // 更新用户信息
-      if (userInfo) {
-        user.nickname = userInfo.nickName || user.nickname;
-        user.avatarUrl = userInfo.avatarUrl || user.avatarUrl;
+        preferredCuisines: ['家常菜'], // 默认菜系
+        favorites: [],
+        viewedRecipes: []
       }
-      user.lastLogin = new Date();
-      await user.save();
+    });
+    
+    if (!created && userInfo) {
+      // 更新用户信息
+      await user.update({
+        nickname: userInfo.nickName || user.nickname,
+        avatarUrl: userInfo.avatarUrl || user.avatarUrl
+      });
     }
 
     // 生成 JWT token
     const token = jwt.sign(
-      { userId: user._id, openid },
+      { userId: user.id, openid },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '30d' }
     );
@@ -61,7 +61,7 @@ exports.wechatLogin = async (req, res) => {
       data: {
         token,
         user: {
-          id: user._id,
+          id: user.id,
           nickname: user.nickname,
           avatarUrl: user.avatarUrl,
           preferredCuisines: user.preferredCuisines
@@ -80,13 +80,12 @@ exports.updatePreferences = async (req, res) => {
     const { cuisines } = req.body;
     const userId = req.user.userId;
 
-    const user = await User.findById(userId);
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ success: false, message: '用户不存在' });
     }
 
-    user.preferredCuisines = cuisines;
-    await user.save();
+    await user.update({ preferredCuisines: cuisines });
 
     res.json({
       success: true,
@@ -105,28 +104,34 @@ exports.getUserInfo = async (req, res) => {
   try {
     const userId = req.user.userId;
     
-    const user = await User.findById(userId)
-      .populate('favorites', 'name imageUrl cuisine cookTime');
+    const user = await User.findByPk(userId);
     
     if (!user) {
       return res.status(404).json({ success: false, message: '用户不存在' });
     }
 
+    const favorites = user.favorites || [];
+    const preferredCuisines = user.preferredCuisines || [];
+    const viewedRecipes = user.viewedRecipes || [];
+
     // 检查是否有新食谱
-    const newRecipesCount = await require('../models/Recipe').countDocuments({
-      cuisine: { $in: user.preferredCuisines },
-      _id: { $nin: user.viewedRecipes },
-      createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } // 7天内
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const newRecipesCount = await Recipe.count({
+      where: {
+        cuisine: preferredCuisines,
+        id: { $notIn: viewedRecipes },
+        createdAt: { $gte: oneWeekAgo }
+      }
     });
 
     res.json({
       success: true,
       data: {
-        id: user._id,
+        id: user.id,
         nickname: user.nickname,
         avatarUrl: user.avatarUrl,
         preferredCuisines: user.preferredCuisines,
-        favoritesCount: user.favorites.length,
+        favoritesCount: favorites.length,
         newRecipesCount
       }
     });

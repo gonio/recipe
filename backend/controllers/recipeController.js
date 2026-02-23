@@ -1,5 +1,4 @@
-const Recipe = require('../models/Recipe');
-const User = require('../models/User');
+const { Recipe, User } = require('../models');
 
 // 获取首页收藏的菜谱
 exports.getFavorites = async (req, res) => {
@@ -7,22 +6,23 @@ exports.getFavorites = async (req, res) => {
     const userId = req.user.userId;
     const { cuisine, page = 1, limit = 20 } = req.query;
     
-    const user = await User.findById(userId);
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ success: false, message: '用户不存在' });
     }
 
-    let query = { _id: { $in: user.favorites } };
+    const favorites = user.favorites || [];
+    const where = { id: favorites };
     if (cuisine) {
-      query.cuisine = cuisine;
+      where.cuisine = cuisine;
     }
 
-    const recipes = await Recipe.find(query)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
-
-    const total = await Recipe.countDocuments(query);
+    const { count, rows: recipes } = await Recipe.findAndCountAll({
+      where,
+      order: [['createdAt', 'DESC']],
+      offset: (page - 1) * limit,
+      limit: parseInt(limit)
+    });
 
     res.json({
       success: true,
@@ -31,8 +31,8 @@ exports.getFavorites = async (req, res) => {
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
-          total,
-          pages: Math.ceil(total / limit)
+          total: count,
+          pages: Math.ceil(count / limit)
         }
       }
     });
@@ -48,25 +48,26 @@ exports.getMarketRecipes = async (req, res) => {
     const userId = req.user.userId;
     const { page = 1, limit = 20 } = req.query;
     
-    const user = await User.findById(userId);
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ success: false, message: '用户不存在' });
     }
 
-    // 获取用户偏好菜系的菜谱，排除已收藏的
-    const recipes = await Recipe.find({
-      cuisine: { $in: user.preferredCuisines },
-      _id: { $nin: user.favorites },
-      isPublished: true
-    })
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+    const { Op } = require('sequelize');
+    const favorites = user.favorites || [];
+    const preferredCuisines = user.preferredCuisines || [];
 
-    const total = await Recipe.countDocuments({
-      cuisine: { $in: user.preferredCuisines },
-      _id: { $nin: user.favorites },
+    const where = {
+      cuisine: preferredCuisines,
+      id: { [Op.notIn]: favorites },
       isPublished: true
+    };
+
+    const { count, rows: recipes } = await Recipe.findAndCountAll({
+      where,
+      order: [['createdAt', 'DESC']],
+      offset: (page - 1) * limit,
+      limit: parseInt(limit)
     });
 
     res.json({
@@ -76,8 +77,8 @@ exports.getMarketRecipes = async (req, res) => {
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
-          total,
-          pages: Math.ceil(total / limit)
+          total: count,
+          pages: Math.ceil(count / limit)
         }
       }
     });
@@ -92,19 +93,33 @@ exports.getDailyRecommend = async (req, res) => {
   try {
     const userId = req.user.userId;
     
-    const user = await User.findById(userId);
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ success: false, message: '用户不存在' });
     }
 
-    // 获取今日推荐（优先用户偏好菜系）
-    let recipes = await Recipe.getDailyRecommend(user.preferredCuisines);
+    const { Op } = require('sequelize');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const preferredCuisines = user.preferredCuisines || [];
+
+    // 获取今日推荐
+    let recipes = await Recipe.findAll({
+      where: {
+        isDailyRecommended: true,
+        recommendDate: { [Op.gte]: today },
+        cuisine: preferredCuisines
+      },
+      order: [['recommendDate', 'DESC']],
+      limit: 3
+    });
     
     // 如果没有今日推荐，随机获取一些菜谱
     if (recipes.length === 0) {
-      recipes = await Recipe.find({
-        cuisine: { $in: user.preferredCuisines }
-      }).limit(3);
+      recipes = await Recipe.findAll({
+        where: { cuisine: preferredCuisines },
+        limit: 3
+      });
     }
 
     res.json({
@@ -123,27 +138,29 @@ exports.getRecipeDetail = async (req, res) => {
     const { id } = req.params;
     const userId = req.user?.userId;
     
-    const recipe = await Recipe.findById(id);
+    const recipe = await Recipe.findByPk(id);
     if (!recipe) {
       return res.status(404).json({ success: false, message: '菜谱不存在' });
     }
 
     let isFavorite = false;
     if (userId) {
-      const user = await User.findById(userId);
-      isFavorite = user.favorites.includes(id);
+      const user = await User.findByPk(userId);
+      const favorites = user.favorites || [];
+      isFavorite = favorites.includes(parseInt(id));
       
       // 标记为已查看
-      if (!user.viewedRecipes.includes(id)) {
-        user.viewedRecipes.push(id);
-        await user.save();
+      const viewedRecipes = user.viewedRecipes || [];
+      if (!viewedRecipes.includes(parseInt(id))) {
+        viewedRecipes.push(parseInt(id));
+        await user.update({ viewedRecipes });
       }
     }
 
     res.json({
       success: true,
       data: {
-        ...recipe.toObject(),
+        ...recipe.toJSON(),
         isFavorite
       }
     });
@@ -159,22 +176,27 @@ exports.addFavorite = async (req, res) => {
     const { recipeId } = req.body;
     const userId = req.user.userId;
     
-    const user = await User.findById(userId);
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ success: false, message: '用户不存在' });
     }
 
+    const favorites = user.favorites || [];
+    
     // 检查是否已收藏
-    if (user.favorites.includes(recipeId)) {
+    if (favorites.includes(parseInt(recipeId))) {
       return res.json({ success: true, message: '已经收藏过了' });
     }
 
     // 添加到收藏
-    user.favorites.push(recipeId);
-    await user.save();
+    favorites.push(parseInt(recipeId));
+    await user.update({ favorites });
 
     // 增加菜谱收藏数
-    await Recipe.findByIdAndUpdate(recipeId, { $inc: { favoriteCount: 1 } });
+    const recipe = await Recipe.findByPk(recipeId);
+    if (recipe) {
+      await recipe.update({ favoriteCount: recipe.favoriteCount + 1 });
+    }
 
     res.json({ success: true, message: '收藏成功' });
   } catch (error) {
@@ -189,17 +211,22 @@ exports.removeFavorite = async (req, res) => {
     const { recipeId } = req.body;
     const userId = req.user.userId;
     
-    const user = await User.findById(userId);
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ success: false, message: '用户不存在' });
     }
 
+    let favorites = user.favorites || [];
+    
     // 从收藏中移除
-    user.favorites = user.favorites.filter(id => id.toString() !== recipeId);
-    await user.save();
+    favorites = favorites.filter(id => id !== parseInt(recipeId));
+    await user.update({ favorites });
 
     // 减少菜谱收藏数
-    await Recipe.findByIdAndUpdate(recipeId, { $inc: { favoriteCount: -1 } });
+    const recipe = await Recipe.findByPk(recipeId);
+    if (recipe) {
+      await recipe.update({ favoriteCount: Math.max(0, recipe.favoriteCount - 1) });
+    }
 
     res.json({ success: true, message: '取消收藏成功' });
   } catch (error) {
@@ -213,26 +240,26 @@ exports.searchRecipes = async (req, res) => {
   try {
     const { keyword, cuisine, page = 1, limit = 20 } = req.query;
     
-    let query = { isPublished: true };
+    const { Op } = require('sequelize');
+    const where = { isPublished: true };
     
     if (keyword) {
-      query.$or = [
-        { name: { $regex: keyword, $options: 'i' } },
-        { tags: { $in: [new RegExp(keyword, 'i')] } },
-        { 'ingredients.name': { $regex: keyword, $options: 'i' } }
+      where[Op.or] = [
+        { name: { [Op.like]: `%${keyword}%` } },
+        { tags: { [Op.like]: `%${keyword}%` } }
       ];
     }
     
     if (cuisine) {
-      query.cuisine = cuisine;
+      where.cuisine = cuisine;
     }
 
-    const recipes = await Recipe.find(query)
-      .sort({ favoriteCount: -1, createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
-
-    const total = await Recipe.countDocuments(query);
+    const { count, rows: recipes } = await Recipe.findAndCountAll({
+      where,
+      order: [['favoriteCount', 'DESC'], ['createdAt', 'DESC']],
+      offset: (page - 1) * limit,
+      limit: parseInt(limit)
+    });
 
     res.json({
       success: true,
@@ -241,8 +268,8 @@ exports.searchRecipes = async (req, res) => {
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
-          total,
-          pages: Math.ceil(total / limit)
+          total: count,
+          pages: Math.ceil(count / limit)
         }
       }
     });
@@ -257,15 +284,18 @@ exports.getRecipesByCuisine = async (req, res) => {
   try {
     const userId = req.user.userId;
     
-    const user = await User.findById(userId);
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ success: false, message: '用户不存在' });
     }
 
+    const favorites = user.favorites || [];
+    
     // 按菜系分组获取收藏的菜谱
-    const recipes = await Recipe.find({
-      _id: { $in: user.favorites }
-    }).sort({ cuisine: 1, createdAt: -1 });
+    const recipes = await Recipe.findAll({
+      where: { id: favorites },
+      order: [['cuisine', 'ASC'], ['createdAt', 'DESC']]
+    });
 
     // 按菜系分组
     const grouped = recipes.reduce((acc, recipe) => {
@@ -293,8 +323,10 @@ exports.createRecipe = async (req, res) => {
     
     // 检查是否已存在同名菜谱
     const existing = await Recipe.findOne({ 
-      name: recipeData.name,
-      cuisine: recipeData.cuisine 
+      where: {
+        name: recipeData.name,
+        cuisine: recipeData.cuisine 
+      }
     });
     
     if (existing) {
@@ -305,8 +337,7 @@ exports.createRecipe = async (req, res) => {
       });
     }
 
-    const recipe = new Recipe(recipeData);
-    await recipe.save();
+    const recipe = await Recipe.create(recipeData);
 
     res.status(201).json({
       success: true,

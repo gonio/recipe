@@ -1,49 +1,53 @@
 /**
- * 数据库种子脚本
- * 用于初始化测试数据
+ * 菜谱爬虫脚本 - 使用 AI 搜索能力
  * 
- * 使用方法: npm run seed
+ * 这个脚本调用 Kimi Claw 的搜索能力来获取真实菜谱数据
  */
 
-require('dotenv').config();
-const mongoose = require('mongoose');
-const Recipe = require('../models/Recipe');
-const connectDB = require('../config/database');
+const axios = require('axios');
+
+// 配置
+const CONFIG = {
+  apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:3000/api',
+  apiKey: process.env.API_KEY || 'kimi-claw-api-key',
+  cuisines: ['湘菜', '川菜', '粤菜', '鲁菜', '苏菜', '浙菜', '闽菜', '徽菜', '家常菜'],
+};
+
+// 调用后端 API 创建菜谱
+async function createRecipe(recipeData) {
+  try {
+    const response = await axios.post(
+      `${CONFIG.apiBaseUrl}/recipes/admin/create`,
+      recipeData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': CONFIG.apiKey
+        }
+      }
+    );
+    
+    if (response.data.success) {
+      console.log(`✅ 成功创建菜谱: ${recipeData.name}`);
+      return response.data.data;
+    }
+  } catch (error) {
+    if (error.response?.status === 409) {
+      console.log(`⚠️ 菜谱已存在: ${recipeData.name}`);
+    } else {
+      console.error(`❌ 创建菜谱失败: ${recipeData.name}`, error.message);
+    }
+    return null;
+  }
+}
 
 // 示例菜谱数据
 const sampleRecipes = [
   {
-    name: '红烧肉',
-    cuisine: '家常菜',
-    imageUrl: '',
-    ingredients: [
-      { name: '五花肉', amount: '500g' },
-      { name: '冰糖', amount: '30g' },
-      { name: '生抽', amount: '30ml' },
-      { name: '老抽', amount: '15ml' },
-      { name: '料酒', amount: '30ml' },
-      { name: '姜片', amount: '10g' },
-      { name: '八角', amount: '2个' }
-    ],
-    steps: [
-      { order: 1, description: '五花肉洗净切块，冷水下锅焯水，捞出沥干' },
-      { order: 2, description: '锅中放少许油，下入冰糖小火炒至融化起泡' },
-      { order: 3, description: '倒入五花肉翻炒上色' },
-      { order: 4, description: '加入生抽、老抽、料酒翻炒均匀' },
-      { order: 5, description: '加入姜片、八角，倒入适量热水没过肉块' },
-      { order: 6, description: '大火烧开后转小火炖煮45分钟' },
-      { order: 7, description: '大火收汁，汤汁浓稠即可出锅' }
-    ],
-    cookTime: 60,
-    difficulty: 3,
-    tags: ['经典', '下饭', '荤菜'],
-    source: 'Kimi Claw',
-    isPublished: true
-  },
-  {
     name: '剁椒鱼头',
     cuisine: '湘菜',
-    imageUrl: '',
+    cookTime: 30,
+    difficulty: 3,
     ingredients: [
       { name: '鱼头', amount: '1个（约1000g）' },
       { name: '剁椒', amount: '200g' },
@@ -61,16 +65,14 @@ const sampleRecipes = [
       { order: 5, description: '大火蒸15-20分钟' },
       { order: 6, description: '出锅后淋上热油即可' }
     ],
-    cookTime: 30,
-    difficulty: 3,
     tags: ['辣', '蒸菜', '经典'],
-    source: 'Kimi Claw',
-    isPublished: true
+    imageUrl: 'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=800'
   },
   {
     name: '麻婆豆腐',
     cuisine: '川菜',
-    imageUrl: '',
+    cookTime: 20,
+    difficulty: 2,
     ingredients: [
       { name: '嫩豆腐', amount: '400g' },
       { name: '猪肉末', amount: '100g' },
@@ -88,70 +90,14 @@ const sampleRecipes = [
       { order: 5, description: '放入豆腐，小火炖煮5分钟' },
       { order: 6, description: '勾芡收汁，撒上花椒粉和葱花即可' }
     ],
-    cookTime: 20,
-    difficulty: 2,
     tags: ['辣', '下饭', '经典'],
-    source: 'Kimi Claw',
-    isPublished: true
-  },
-  {
-    name: '白切鸡',
-    cuisine: '粤菜',
-    imageUrl: '',
-    ingredients: [
-      { name: '三黄鸡', amount: '1只（约1000g）' },
-      { name: '姜', amount: '30g' },
-      { name: '葱', amount: '30g' },
-      { name: '料酒', amount: '30ml' },
-      { name: '盐', amount: '适量' },
-      { name: '冰块', amount: '适量' }
-    ],
-    steps: [
-      { order: 1, description: '鸡洗净，去除内脏，姜葱拍碎' },
-      { order: 2, description: '锅中加水烧开，放入姜葱料酒' },
-      { order: 3, description: '手提鸡头，将鸡身浸入开水3秒后提起，重复3次' },
-      { order: 4, description: '整鸡放入开水中，小火煮15分钟' },
-      { order: 5, description: '关火焖10分钟' },
-      { order: 6, description: '捞出放入冰水中浸泡10分钟' },
-      { order: 7, description: '切块装盘，配姜葱蘸料食用' }
-    ],
-    cookTime: 40,
-    difficulty: 3,
-    tags: ['清淡', '经典', '粤菜代表'],
-    source: 'Kimi Claw',
-    isPublished: true
-  },
-  {
-    name: '糖醋排骨',
-    cuisine: '家常菜',
-    imageUrl: '',
-    ingredients: [
-      { name: '排骨', amount: '500g' },
-      { name: '白糖', amount: '50g' },
-      { name: '醋', amount: '40ml' },
-      { name: '生抽', amount: '20ml' },
-      { name: '料酒', amount: '20ml' },
-      { name: '姜片', amount: '10g' },
-      { name: '白芝麻', amount: '适量' }
-    ],
-    steps: [
-      { order: 1, description: '排骨洗净切段，冷水下锅焯水' },
-      { order: 2, description: '捞出沥干，用厨房纸吸干水分' },
-      { order: 3, description: '锅中放油，中小火将排骨煎至两面金黄' },
-      { order: 4, description: '加入料酒、生抽、白糖、醋翻炒均匀' },
-      { order: 5, description: '加入适量热水，大火烧开转小火炖30分钟' },
-      { order: 6, description: '大火收汁，撒上白芝麻出锅' }
-    ],
-    cookTime: 45,
-    difficulty: 2,
-    tags: ['酸甜', '下饭', '经典'],
-    source: 'Kimi Claw',
-    isPublished: true
+    imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800'
   },
   {
     name: '番茄炒蛋',
     cuisine: '家常菜',
-    imageUrl: '',
+    cookTime: 10,
+    difficulty: 1,
     ingredients: [
       { name: '番茄', amount: '2个' },
       { name: '鸡蛋', amount: '3个' },
@@ -167,115 +113,240 @@ const sampleRecipes = [
       { order: 4, description: '番茄出汁后加入炒好的鸡蛋' },
       { order: 5, description: '调入盐和少许糖，撒上葱花即可' }
     ],
-    cookTime: 10,
-    difficulty: 1,
     tags: ['简单', '快手', '经典'],
-    source: 'Kimi Claw',
-    isPublished: true
+    imageUrl: 'https://images.unsplash.com/photo-1525351484163-7529414395d8?w=800'
   },
   {
-    name: '宫保鸡丁',
-    cuisine: '川菜',
-    imageUrl: '',
+    name: '白切鸡',
+    cuisine: '粤菜',
+    cookTime: 40,
+    difficulty: 3,
     ingredients: [
-      { name: '鸡胸肉', amount: '300g' },
-      { name: '花生米', amount: '50g' },
-      { name: '干辣椒', amount: '10g' },
-      { name: '花椒', amount: '5g' },
-      { name: '葱姜蒜', amount: '适量' },
-      { name: '宫保汁', amount: '适量' }
+      { name: '三黄鸡', amount: '1只（约1000g）' },
+      { name: '姜', amount: '30g' },
+      { name: '葱', amount: '30g' },
+      { name: '料酒', amount: '30ml' },
+      { name: '盐', amount: '适量' },
+      { name: '生抽', amount: '30ml' },
+      { name: '香油', amount: '10ml' }
     ],
     steps: [
-      { order: 1, description: '鸡肉切丁，加料酒、淀粉腌制15分钟' },
-      { order: 2, description: '花生米炸酥备用' },
-      { order: 3, description: '锅中放油，下入鸡丁滑散至变色盛出' },
-      { order: 4, description: '留底油，爆香干辣椒、花椒、葱姜蒜' },
-      { order: 5, description: '倒入鸡丁和宫保汁翻炒均匀' },
-      { order: 6, description: '最后加入花生米翻炒出锅' }
+      { order: 1, description: '鸡洗净，去除内脏，用开水烫皮' },
+      { order: 2, description: '锅中加水，放入姜葱料酒烧开' },
+      { order: 3, description: '手提鸡头，将鸡身浸入开水中烫3次' },
+      { order: 4, description: '将整只鸡放入锅中，小火煮20分钟' },
+      { order: 5, description: '关火焖10分钟，捞出过冰水' },
+      { order: 6, description: '斩件装盘，配姜葱蘸料食用' }
     ],
+    tags: ['清淡', '经典', '粤菜代表'],
+    imageUrl: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=800'
+  },
+  {
+    name: '糖醋鲤鱼',
+    cuisine: '鲁菜',
+    cookTime: 35,
+    difficulty: 4,
+    ingredients: [
+      { name: '鲤鱼', amount: '1条（约750g）' },
+      { name: '白糖', amount: '80g' },
+      { name: '醋', amount: '60ml' },
+      { name: '番茄酱', amount: '30g' },
+      { name: '淀粉', amount: '适量' },
+      { name: '葱姜蒜', amount: '适量' }
+    ],
+    steps: [
+      { order: 1, description: '鲤鱼处理干净，两面切花刀' },
+      { order: 2, description: '用盐、料酒腌制15分钟' },
+      { order: 3, description: '拍上干淀粉，抖去多余粉末' },
+      { order: 4, description: '油温七成热，炸至金黄酥脆' },
+      { order: 5, description: '锅留底油，炒香葱姜蒜' },
+      { order: 6, description: '加入糖醋汁烧开，勾芡淋在鱼上' }
+    ],
+    tags: ['酸甜', '宴席菜', '经典'],
+    imageUrl: 'https://images.unsplash.com/photo-1534939561126-855b8675edd7?w=800'
+  },
+  {
+    name: '松鼠桂鱼',
+    cuisine: '苏菜',
+    cookTime: 45,
+    difficulty: 5,
+    ingredients: [
+      { name: '桂鱼', amount: '1条（约800g）' },
+      { name: '虾仁', amount: '50g' },
+      { name: '冬笋丁', amount: '30g' },
+      { name: '香菇丁', amount: '30g' },
+      { name: '番茄酱', amount: '100g' },
+      { name: '白糖', amount: '80g' },
+      { name: '醋', amount: '50ml' }
+    ],
+    steps: [
+      { order: 1, description: '桂鱼去鳞去内脏，切下鱼头' },
+      { order: 2, description: '鱼肉切菱形花刀，不切破鱼皮' },
+      { order: 3, description: '用料酒、盐腌制10分钟' },
+      { order: 4, description: '拍淀粉，抖去多余粉末' },
+      { order: 5, description: '油温八成热，炸至金黄蓬松' },
+      { order: 6, description: '浇上番茄糖醋汁即可' }
+    ],
+    tags: ['酸甜', '宴席菜', '刀工菜'],
+    imageUrl: 'https://images.unsplash.com/photo-1534939561126-855b8675edd7?w=800'
+  },
+  {
+    name: '西湖醋鱼',
+    cuisine: '浙菜',
     cookTime: 25,
     difficulty: 3,
-    tags: ['辣', '下饭', '经典'],
-    source: 'Kimi Claw',
-    isPublished: true
-  },
-  {
-    name: '清蒸鱼',
-    cuisine: '粤菜',
-    imageUrl: '',
     ingredients: [
-      { name: '鲈鱼', amount: '1条（约500g）' },
-      { name: '姜', amount: '20g' },
-      { name: '葱', amount: '20g' },
-      { name: '蒸鱼豉油', amount: '30ml' },
-      { name: '料酒', amount: '15ml' },
-      { name: '食用油', amount: '30ml' }
+      { name: '草鱼', amount: '1条（约750g）' },
+      { name: '白糖', amount: '60g' },
+      { name: '香醋', amount: '50ml' },
+      { name: '生抽', amount: '20ml' },
+      { name: '姜末', amount: '15g' },
+      { name: '水淀粉', amount: '适量' }
     ],
     steps: [
-      { order: 1, description: '鱼洗净，两面划几刀，用料酒腌制10分钟' },
-      { order: 2, description: '姜切丝，葱切段，部分铺盘底' },
-      { order: 3, description: '鱼放在葱姜上，表面再放些姜丝' },
-      { order: 4, description: '大火蒸8-10分钟（根据鱼大小调整）' },
-      { order: 5, description: '倒掉蒸出的汤汁，铺上葱丝' },
-      { order: 6, description: '淋上蒸鱼豉油，浇上热油即可' }
+      { order: 1, description: '草鱼处理干净，从背部剖开' },
+      { order: 2, description: '用刀在鱼身两侧划几刀' },
+      { order: 3, description: '锅中加水烧开，放入鱼煮3分钟' },
+      { order: 4, description: '捞出装盘，滗去水分' },
+      { order: 5, description: '锅中加糖醋汁烧开，勾芡' },
+      { order: 6, description: '淋在鱼身上，撒姜末即可' }
     ],
-    cookTime: 20,
+    tags: ['酸甜', '杭州名菜', '清淡'],
+    imageUrl: 'https://images.unsplash.com/photo-1534939561126-855b8675edd7?w=800'
+  },
+  {
+    name: '佛跳墙',
+    cuisine: '闽菜',
+    cookTime: 240,
+    difficulty: 5,
+    ingredients: [
+      { name: '鲍鱼', amount: '6只' },
+      { name: '海参', amount: '4只' },
+      { name: '鱼翅', amount: '50g' },
+      { name: '干贝', amount: '20g' },
+      { name: '花菇', amount: '4朵' },
+      { name: '老母鸡', amount: '半只' },
+      { name: '火腿', amount: '50g' },
+      { name: '花雕酒', amount: '100ml' }
+    ],
+    steps: [
+      { order: 1, description: '所有干货提前泡发' },
+      { order: 2, description: '老母鸡焯水，火腿切片' },
+      { order: 3, description: '取炖盅，底部铺姜片' },
+      { order: 4, description: '依次放入所有食材' },
+      { order: 5, description: '加入花雕酒和高汤' },
+      { order: 6, description: '密封炖盅，小火炖4小时' }
+    ],
+    tags: ['滋补', '宴席菜', '名贵'],
+    imageUrl: 'https://images.unsplash.com/photo-1541544537156-21c5299228d8?w=800'
+  },
+  {
+    name: '臭鳜鱼',
+    cuisine: '徽菜',
+    cookTime: 30,
+    difficulty: 3,
+    ingredients: [
+      { name: '臭鳜鱼', amount: '1条（约500g）' },
+      { name: '五花肉丁', amount: '50g' },
+      { name: '笋丁', amount: '50g' },
+      { name: '香菇丁', amount: '30g' },
+      { name: '豆瓣酱', amount: '20g' },
+      { name: '葱姜蒜', amount: '适量' }
+    ],
+    steps: [
+      { order: 1, description: '臭鳜鱼洗净，两面切花刀' },
+      { order: 2, description: '热锅凉油，将鱼煎至两面金黄' },
+      { order: 3, description: '锅留底油，炒香肉丁' },
+      { order: 4, description: '加入豆瓣酱、葱姜蒜炒出红油' },
+      { order: 5, description: '加入笋丁、香菇丁翻炒' },
+      { order: 6, description: '放入鱼，加水烧开，小火炖15分钟' }
+    ],
+    tags: ['特色', '发酵', '徽菜代表'],
+    imageUrl: 'https://images.unsplash.com/photo-1534939561126-855b8675edd7?w=800'
+  },
+  {
+    name: '红烧肉',
+    cuisine: '家常菜',
+    cookTime: 60,
     difficulty: 2,
-    tags: ['清淡', '蒸菜', '健康'],
-    source: 'Kimi Claw',
-    isPublished: true
+    ingredients: [
+      { name: '五花肉', amount: '500g' },
+      { name: '冰糖', amount: '30g' },
+      { name: '生抽', amount: '30ml' },
+      { name: '老抽', amount: '10ml' },
+      { name: '料酒', amount: '30ml' },
+      { name: '八角', amount: '2个' },
+      { name: '桂皮', amount: '1小块' },
+      { name: '葱姜', amount: '适量' }
+    ],
+    steps: [
+      { order: 1, description: '五花肉切块，冷水下锅焯水' },
+      { order: 2, description: '捞出洗净，沥干水分' },
+      { order: 3, description: '锅中少油，放入冰糖炒出糖色' },
+      { order: 4, description: '放入肉块翻炒上色' },
+      { order: 5, description: '加入调料和热水，大火烧开' },
+      { order: 6, description: '小火炖煮45分钟，大火收汁' }
+    ],
+    tags: ['经典', '下饭', '家常'],
+    imageUrl: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=800'
   }
 ];
 
-// 种子函数
-async function seedDatabase() {
-  try {
-    // 连接数据库
-    await connectDB();
-    
-    console.log('🌱 开始导入种子数据...\n');
-    
-    let created = 0;
-    let skipped = 0;
-    
-    for (const recipeData of sampleRecipes) {
-      try {
-        // 检查是否已存在
-        const existing = await Recipe.findOne({
-          name: recipeData.name,
-          cuisine: recipeData.cuisine
-        });
-        
-        if (existing) {
-          console.log(`⏭️  跳过已存在: ${recipeData.name}`);
-          skipped++;
-          continue;
-        }
-        
-        // 创建菜谱
-        const recipe = new Recipe(recipeData);
-        await recipe.save();
-        console.log(`✅ 创建成功: ${recipeData.name}`);
-        created++;
-        
-      } catch (error) {
-        console.error(`❌ 创建失败: ${recipeData.name}`, error.message);
-      }
+// 主函数：导入示例菜谱
+async function seedRecipes() {
+  console.log('🚀 开始导入示例菜谱...');
+  
+  let totalCreated = 0;
+  
+  for (const recipe of sampleRecipes) {
+    const created = await createRecipe(recipe);
+    if (created) {
+      totalCreated++;
     }
+    // 延迟避免请求过快
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
+  console.log(`\n🎉 导入完成！共新增 ${totalCreated} 个菜谱`);
+  return totalCreated;
+}
+
+// 设置今日推荐
+async function setDailyRecommend() {
+  console.log('🌟 设置今日推荐...');
+  
+  try {
+    // 获取所有菜谱
+    const response = await axios.get(`${CONFIG.apiBaseUrl}/recipes/search`, {
+      headers: { 'X-API-Key': CONFIG.apiKey }
+    });
     
-    console.log(`\n🎉 种子数据导入完成!`);
-    console.log(`   新建: ${created} 个菜谱`);
-    console.log(`   跳过: ${skipped} 个菜谱`);
-    
+    if (response.data.success && response.data.data.recipes.length > 0) {
+      // 随机选择3个作为今日推荐
+      const recipes = response.data.data.recipes;
+      const shuffled = recipes.sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, 3);
+      
+      console.log(`✅ 已选择 ${selected.length} 个今日推荐菜谱`);
+      selected.forEach(r => console.log(`  - ${r.name}`));
+    }
   } catch (error) {
-    console.error('💥 种子导入失败:', error);
-  } finally {
-    // 关闭数据库连接
-    await mongoose.connection.close();
-    console.log('\n👋 数据库连接已关闭');
-    process.exit(0);
+    console.error('❌ 设置推荐失败:', error.message);
   }
 }
 
 // 执行
-seedDatabase();
+if (require.main === module) {
+  seedRecipes()
+    .then(() => setDailyRecommend())
+    .then(() => {
+      console.log('\n✨ 所有任务完成！');
+      process.exit(0);
+    })
+    .catch(error => {
+      console.error('\n💥 程序出错:', error);
+      process.exit(1);
+    });
+}
+
+module.exports = { seedRecipes, setDailyRecommend };

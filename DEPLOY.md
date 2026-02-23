@@ -1,143 +1,232 @@
-# 🚀 部署指南
+# 菜谱小程序部署文档
 
-## 部署前准备
+## 系统要求
 
-### 1. 服务器环境
-- Node.js 16+ 
-- MongoDB 4.4+
-- Nginx（可选，用于反向代理）
+- Ubuntu 20.04+ / Debian 11+
+- Node.js 18+
+- 1GB+ RAM
+- 10GB+ 磁盘空间
 
-### 2. 微信小程序
-- 注册微信小程序账号
-- 获取 AppID 和 AppSecret
-- 配置服务器域名（后端 API 地址）
+## 快速部署
 
-## 部署步骤
-
-### 第一步：部署后端服务
+### 1. 克隆代码
 
 ```bash
-# 1. 上传代码到服务器
-cd /path/to/recipe-miniapp/backend
+git clone https://github.com/gonio/recipe.git
+cd recipe/backend
+```
 
-# 2. 安装依赖
+### 2. 安装依赖
+
+```bash
 npm install
+```
 
-# 3. 配置环境变量
+### 3. 配置环境变量
+
+```bash
 cp .env.example .env
-nano .env
+# 编辑 .env 文件
+```
 
-# 4. 填写以下配置
-MONGODB_URI=mongodb://localhost:27017/recipe_miniapp
-JWT_SECRET=your-random-secret-key
+**必需配置**:
+```bash
+JWT_SECRET=your-secret-key
+API_KEY=your-api-key
+PORT=3000
+```
+
+**微信小程序登录** (可选):
+```bash
 WECHAT_APPID=your-wechat-appid
 WECHAT_SECRET=your-wechat-secret
-API_KEY=your-secure-api-key-for-claw
-PORT=3000
+```
 
-# 5. 启动服务（开发模式）
+### 4. 启动服务
+
+```bash
 npm start
+```
 
-# 或使用 PM2 部署（生产环境）
+服务将在 http://localhost:3000 运行
+
+## 生产环境部署
+
+### 使用 PM2 进程管理
+
+```bash
 npm install -g pm2
-pm2 start server.js --name recipe-api
-pm2 startup
+pm2 start server-sqlite.js --name recipe-backend
 pm2 save
+pm2 startup
 ```
 
-### 第二步：初始化数据库
+### 配置 Nginx 反向代理
 
 ```bash
-cd /path/to/recipe-miniapp/backend
-
-# 导入示例菜谱数据
-npm run seed
+sudo apt-get install nginx
 ```
 
-### 第三步：部署微信小程序
+创建配置文件 `/etc/nginx/sites-available/recipe`:
 
-1. 打开微信开发者工具
-2. 选择 `wechat-app` 目录
-3. 修改 `app.js` 中的 API 地址：
-   ```javascript
-   apiBaseUrl: 'https://your-domain.com/api'
-   ```
-4. 在小程序后台配置服务器域名
-5. 上传代码并提交审核
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    
+    location /api/ {
+        proxy_pass http://127.0.0.1:3000/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+    
+    location /health {
+        proxy_pass http://127.0.0.1:3000/health;
+    }
+}
+```
 
-### 第四步：配置 Kimi Claw
+启用配置:
+```bash
+sudo ln -s /etc/nginx/sites-available/recipe /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 配置 HTTPS (Let's Encrypt)
 
 ```bash
-# 1. 在 Kimi Claw 云环境中上传爬虫脚本
-cd kimi-claw-scripts
-
-# 2. 安装依赖
-npm install
-
-# 3. 配置环境变量
-cp .env.example .env
-# 编辑 .env，填入你的 API 地址和密钥
-
-# 4. 测试运行
-npm start
+sudo apt-get install certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.com
 ```
 
-在 Kimi Claw 中设置定时任务：
+### 防火墙配置
+
+```bash
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
 ```
-每天早上 9 点执行：
-1. cd /path/to/kimi-claw-scripts
-2. npm run daily
+
+## 安全配置
+
+### SSH 加固
+
+编辑 `/etc/ssh/sshd_config`:
+```
+PermitRootLogin prohibit-password
+PasswordAuthentication no
+MaxAuthTries 3
 ```
 
-## 检查清单
+重启 SSH:
+```bash
+sudo systemctl restart ssh
+```
 
-### 后端部署
-- [ ] MongoDB 已启动
-- [ ] 环境变量已配置
-- [ ] API 可以通过外网访问
-- [ ] 防火墙已开放对应端口
-- [ ] 数据库种子已导入
+### 安装 Fail2Ban
 
-### 小程序部署
-- [ ] 已注册小程序账号
-- [ ] 已获取 AppID 和 AppSecret
-- [ ] 服务器域名已配置
-- [ ] API 地址已修改为生产环境
-- [ ] 已上传并提交审核
+```bash
+sudo apt-get install fail2ban
+```
 
-### Kimi Claw 配置
-- [ ] 脚本已上传到云端
-- [ ] 环境变量已配置
-- [ ] API Key 可以正常调用后端
-- [ ] 定时任务已设置
-- [ ] 测试运行成功
+创建 `/etc/fail2ban/jail.local`:
+```ini
+[DEFAULT]
+bantime = 3600
+findtime = 600
+maxretry = 3
 
-## 常见问题
+[sshd]
+enabled = true
+```
 
-### Q: 后端启动失败？
-检查 MongoDB 是否正常运行，环境变量是否正确配置。
+```bash
+sudo systemctl restart fail2ban
+```
 
-### Q: 小程序无法连接后端？
-检查：
-1. 服务器域名是否已配置
-2. API 地址是否正确
-3. 防火墙是否开放端口
-4. 是否使用 HTTPS（生产环境必需）
+## 前端配置
 
-### Q: Kimi Claw 爬取失败？
-检查：
-1. API_BASE_URL 是否正确
-2. API_KEY 是否匹配
-3. 后端是否允许外网访问
+修改 `wechat-app/app.js`:
 
-## 生产环境建议
+```javascript
+App({
+  globalData: {
+    apiBaseUrl: 'https://your-domain.com/api'
+  }
+})
+```
 
-1. **使用 HTTPS**：小程序要求生产环境使用 HTTPS
-2. **启用 MongoDB 认证**：生产环境建议开启数据库认证
-3. **配置反向代理**：使用 Nginx 作为反向代理
-4. **日志监控**：配置日志收集和监控告警
-5. **定期备份**：定期备份数据库数据
+## 定时任务
 
-## 联系方式
+配置每天自动抓取菜谱:
 
-如有问题，请提交 Issue 或联系开发者。
+```bash
+# 使用 cron 每天 9 点执行
+crontab -e
+# 添加:
+0 9 * * * cd /path/to/recipe/kimi-claw-scripts && node ai-crawler.js
+```
+
+## 备份
+
+### 数据库备份
+
+```bash
+# SQLite 数据库位置
+backend/data/recipe.db
+
+# 备份
+cp backend/data/recipe.db backup/recipe-$(date +%Y%m%d).db
+```
+
+## 故障排查
+
+### 查看日志
+
+```bash
+# PM2 日志
+pm2 logs recipe-backend
+
+# Nginx 日志
+sudo tail -f /var/log/nginx/error.log
+```
+
+### 检查服务状态
+
+```bash
+# 后端服务
+pm2 status
+
+# Nginx
+sudo systemctl status nginx
+
+# 数据库
+ls -la backend/data/
+```
+
+## API 接口
+
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| /api/auth/wechat-login | POST | 微信登录 |
+| /api/auth/user | GET | 获取用户信息 |
+| /api/recipes/cuisines | GET | 获取菜系列表 |
+| /api/recipes/search | GET | 搜索菜谱 |
+| /api/recipes/detail/:id | GET | 菜谱详情 |
+| /api/recipes/favorites | GET | 收藏列表 |
+| /api/recipes/market | GET | 市场菜谱 |
+| /api/recipes/daily-recommend | GET | 今日推荐 |
+
+## 技术栈
+
+- **后端**: Node.js + Express + Sequelize + SQLite
+- **前端**: 微信小程序
+- **进程管理**: PM2
+- **反向代理**: Nginx
+- **安全**: Fail2Ban + UFW
+
+## 许可证
+
+MIT
