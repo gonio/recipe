@@ -96,7 +96,7 @@
       </view>
       <button class="menu-item share-btn" open-type="share">
         <view class="menu-icon share">
-          <image src="/images/share-blue.png" mode="aspectFit"/>
+          <image src="/images/share.png" mode="aspectFit"/>
         </view>
         <text class="menu-text">分享给好友</text>
         <view class="menu-arrow">
@@ -104,6 +104,11 @@
         </view>
       </button>
     </view>
+  </view>
+
+  <!-- 退出登录 -->
+  <view class="logout-section" bindtap="logout">
+    <text class="logout-text">退出登录</text>
   </view>
 
   <!-- 版本信息 -->

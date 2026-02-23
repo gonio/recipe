@@ -205,6 +205,24 @@
   display: none;
 }
 
+/* 退出登录 */
+.logout-section {
+  background: var(--bg-white);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 24rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4rpx 20rpx var(--shadow-color);
+}
+
+.logout-text {
+  font-size: 30rpx;
+  color: #EF5350;
+  font-weight: 500;
+}
+
 /* 版本信息 */
 .version-info {
   text-align: center;

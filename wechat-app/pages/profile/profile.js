@@ -110,5 +110,23 @@ Page({
       path: '/pages/index/index',
       imageUrl: '/images/share-default.png'
     };
+  },
+
+  // 退出登录
+  logout() {
+    wx.showModal({
+      title: '确认退出',
+      content: '确定要退出登录吗？',
+      confirmColor: '#EF5350',
+      success: (res) => {
+        if (res.confirm) {
+          app.logout();
+          // 返回首页
+          wx.switchTab({
+            url: '/pages/index/index'
+          });
+        }
+      }
+    });
   }
 });
