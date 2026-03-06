@@ -17,6 +17,34 @@ package-lock.json
 *.swo
 *~
 
+# AI Editors (auto-generated rules)
+.agent/
+.agents/
+.augment-guidelines
+.claude/
+.clinerules/
+.codebuddy/
+.codex/
+.comate/
+.cursor/
+.gemini/
+.github/copilot-instructions.md
+.kiro/
+.lingma/
+.mcp.json
+.opencode.json
+.qoder/
+.qwen/
+.roo/
+.rules/
+.trae/
+.windsurf/
+CLAUDE.md
+CODEBUDDY.md
+
+# Obsolete files
+.map.json
+
 # OS
 .DS_Store
 Thumbs.db
