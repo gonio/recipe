@@ -183,7 +183,7 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T063 [P] Update wechat-app/app.json tabBar configuration for all pages (index, market, favorites, recommend, profile)
+- [X] T063 [P] Update wechat-app/app.json tabBar configuration for all pages (index, market, favorites, recommend, profile)
 - [ ] T064 [P] Update wechat-app/app.wxss global styles with light blue theme variables and common component styles
 - [ ] T065 [P] Add responsive design media queries for different mobile screen sizes
 - [ ] T066 Create comprehensive README.md with setup instructions, deployment guide, and troubleshooting
