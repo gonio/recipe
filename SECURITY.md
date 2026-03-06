@@ -34,7 +34,7 @@
 
 ## API 访问地址
 ```
-https://115.191.56.155/api/
+https://xxx/api/
 ```
 
 ## 注意事项
@@ -100,10 +100,6 @@ fail2ban-client status nginx-http-auth
 - 用户: root
 - 密码: 已禁用
 
-### API 访问
-```
-https://115.191.56.155/api/
-```
 
 ## 后续建议
 1. 购买域名，配置 Let's Encrypt 证书
