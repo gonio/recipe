@@ -14,7 +14,7 @@
 
 **Tests**: Manual testing via WeChat Developer Tools (no automated test tasks generated)
 
-**Chinese Development Requirement**: All code comments, variable names, function names, and UI text MUST be in Chinese. File paths remain in English per WeChat Mini Program framework conventions.
+**Chinese Development Requirement**: Code comments, UI text, and documentation MUST be in Chinese. Variable names, function names, and file paths remain in English per standard conventions.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 

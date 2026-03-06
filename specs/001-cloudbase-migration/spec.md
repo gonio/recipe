@@ -149,7 +149,7 @@ All existing features work reliably without bugs, providing a smooth user experi
 
 - **FR-015**: System MUST track recipe heat scores combining internal favoriteCount with external popularity metrics (when available from AI search) to determine which version to keep
 
-- **FR-016**: System MUST use Chinese for all development including code comments, variable naming, UI text, and documentation
+- **FR-016**: System MUST use Chinese for code comments, UI text, and documentation; code variables, function names, and file paths remain in English
 
 ### Key Entities *(include if feature involves data)*
 
@@ -235,4 +235,4 @@ All existing features work reliably without bugs, providing a smooth user experi
 
 - **Q**: 每天生成多少道菜谱？→ **A**: 每天生成 2 道。智能去重：AI 搜索新菜谱，与现有库对比，仅添加不重复的或热度（点赞/收藏）更高的版本。若当天无新内容，则从现有菜谱中推荐 2 道适合当天制作的菜。
 
-- **Q**: 项目开发语言要求？→ **A**: 全项目使用中文开发，包括代码注释、变量命名、UI 文本、文档等。
+- **Q**: 项目开发语言要求？→ **A**: 代码注释、UI 文本、文档使用中文；代码变量名、函数名、文件路径保持英文（已修正：此前理解有误，变量和函数名应为英文）
