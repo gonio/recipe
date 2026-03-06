@@ -61,21 +61,21 @@ Users can collect favorite recipes and receive personalized recommendations base
 
 ---
 
-### User Story 3 - Automated Content Discovery (Priority: P2)
+### User Story 3 - Smart Daily Recipe Curation (Priority: P2)
 
-Users discover new recipes through the "Market" section where Kimi Claw automatically ingests fresh content, with the system handling data migration to CloudBase transparently.
+Users discover new recipes through the "Market" section where the system intelligently curates 2 recipes daily - either fresh content from AI search or recommendations from existing recipes suitable for the day.
 
-**Why this priority**: Automated content keeps the app fresh and gives users reasons to return. While critical for long-term success, this can function as a value-add after core browsing/collection works.
+**Why this priority**: Automated content keeps the app fresh and gives users reasons to return. The intelligent deduplication ensures quality over quantity, while fallback recommendations ensure the Market is never empty.
 
-**Independent Test**: Can be fully tested by navigating to the Market tab and seeing new recipes that were crawled and ingested into CloudBase. The market should display fresh content regularly.
+**Independent Test**: Can be fully tested by checking the Market tab daily. Should see 2 recipes with clear indicators ("New" for fresh content, "Recommended" for existing), with no duplicates in the database.
 
 **Acceptance Scenarios**:
 
-1. **Given** the user wants to discover new recipes, **When** they navigate to the "Market" tab, **Then** they see recently crawled recipes with clear "New" indicators and categorization
+1. **Given** the daily scheduled job runs, **When** AI finds new recipes with high popularity, **Then** 2 non-duplicate recipes (or higher-heat versions) appear in the Market with "New" indicators
 
-2. **Given** the Kimi Claw crawler has found new recipes, **When** the daily ingestion runs, **Then** new recipes appear in the Market section within 24 hours
+2. **Given** the AI search finds no suitable new content, **When** the job completes, **Then** 2 existing recipes suitable for the current day appear with "Today's Pick" indicators
 
-3. **Given** the system is running on CloudBase infrastructure, **When** the crawler submits new recipes, **Then** they are stored and served reliably without data loss
+3. **Given** a recipe already exists in the database, **When** AI finds a similar recipe with higher heat score (likes/favorites), **Then** the higher-heat version replaces the original in the Market and database is updated
 
 ---
 
@@ -100,12 +100,15 @@ All existing features work reliably without bugs, providing a smooth user experi
 ### Edge Cases
 
 - What happens when the user has no internet connection?
-- How does the system handle duplicate recipes from the crawler?
+- How does the system handle duplicate recipes from AI search (name similarity matching)?
+- What happens when AI returns a recipe with the same name but higher external popularity?
 - What happens when CloudBase service quotas are exceeded?
 - How are users migrated from the old backend to CloudBase (data continuity)?
 - What happens when recipe images fail to load?
 - How does the system handle very long recipe names or ingredient lists?
 - What happens when the user rapidly switches between tabs?
+- What happens when AI search fails or returns no results for multiple consecutive days?
+- How does the system determine which existing recipes are "suitable for the day" (seasonality logic)?
 
 ## Requirements *(mandatory)*
 
@@ -132,7 +135,7 @@ All existing features work reliably without bugs, providing a smooth user experi
 
 - **FR-008**: System MUST migrate existing recipe data from current MongoDB to CloudBase NoSQL without data loss
 
-- **FR-009**: System MUST ensure Kimi Claw crawler continues to function after backend migration, updating integration points to use CloudBase endpoints
+- **FR-009**: System MUST implement daily recipe curation using CloudBase scheduled triggers (cron: daily at 9:00 AM), generating exactly 2 recipes per day via AI model search (Hunyuan/DeepSeek with web search capability)
 
 - **FR-010**: System MUST maintain or improve page load performance (target: under 2 seconds on standard mobile networks) after CloudBase migration
 
@@ -140,13 +143,19 @@ All existing features work reliably without bugs, providing a smooth user experi
 
 - **FR-012**: System MUST implement responsive design that works across different mobile screen sizes
 
+- **FR-013**: System MUST implement intelligent deduplication for AI-discovered recipes: compare against existing recipes by name similarity (>80% match threshold); if duplicate detected, keep the version with higher heat score (favoriteCount + external popularity metrics)
+
+- **FR-014**: System MUST implement fallback recommendation logic: when AI search returns no suitable new recipes, select 2 existing recipes based on seasonality, user preferences, and historical popularity for "Today's Pick"
+
+- **FR-015**: System MUST track recipe heat scores combining internal favoriteCount with external popularity metrics (when available from AI search) to determine which version to keep
+
 ### Key Entities *(include if feature involves data)*
 
-- **Recipe**: Represents a cooking recipe with attributes: name, cuisine, imageUrl, ingredients[], steps[], cookTime, difficulty, tags[], favoriteCount, isDailyRecommended, createdAt, updatedAt
+- **Recipe**: Represents a cooking recipe with attributes: name, cuisine, imageUrl, ingredients[], steps[], cookTime, difficulty, tags[], favoriteCount, isDailyRecommended, sourceType (ai_generated|manual), createdAt, updatedAt
 
 - **User**: Represents a WeChat Mini Program user with attributes: openid (WeChat OpenID), nickname, avatarUrl, preferredCuisines[], favorites[] (recipe IDs), viewedRecipes[], createdAt
 
-- **CrawlerJob**: Represents a content ingestion job from Kimi Claw with attributes: jobId, status, recipesFound, recipesAdded, errors[], executedAt
+- **AIRecipeGenerationLog**: Represents an AI recipe generation job with attributes: jobId, status, recipesSearched, recipesAdded, recipesDuplicated, modelUsed (hunyuan|deepseek), fallbackToExisting (boolean), errors[], executedAt
 
 ### CloudBase Requirements *(for CloudBase-dependent features)*
 
@@ -156,8 +165,9 @@ All existing features work reliably without bugs, providing a smooth user experi
 -->
 
 **CloudBase Services**:
-- [x] NoSQL Database: recipes collection, users collection, crawler_jobs collection
-- [x] Cloud Functions: user-authentication (get OpenID), crawler-ingest (secure endpoint for Kimi Claw), daily-recommend (generate recommendations)
+- [x] NoSQL Database: recipes collection, users collection
+- [x] Cloud Functions: user-authentication (get OpenID), daily-recommend (generate recommendations), ai-recipe-generator (AI-powered recipe creation)
+- [x] Scheduled Triggers: Daily AI recipe generation (cron: 0 0 9 * * * *)
 - [x] Cloud Storage: recipe images, user avatars
 - [x] Authentication: WeChat OpenID (natural login-free)
 
@@ -192,17 +202,19 @@ All existing features work reliably without bugs, providing a smooth user experi
 
 - **SC-005**: Daily recommendations load successfully and display personalized content based on user preferences
 
-- **SC-006**: Kimi Claw crawler successfully ingests new recipes to CloudBase with less than 1% error rate
+- **SC-006**: Daily curation successfully provides exactly 2 recipes per day in the Market section, with 100% availability (fallback recommendations ensure no empty days)
 
-- **SC-007**: Zero explicit login screens required - user identity is obtained seamlessly via WeChat OpenID
+- **SC-007**: Deduplication logic achieves >95% accuracy in detecting true duplicates (by name similarity >80%) and correctly selects higher-heat versions
 
-- **SC-008**: UI receives positive feedback in informal testing - users describe it as "beautiful", "modern", or "easy to use"
+- **SC-008**: Zero explicit login screens required - user identity is obtained seamlessly via WeChat OpenID
+
+- **SC-009**: UI receives positive feedback in informal testing - users describe it as "beautiful", "modern", or "easy to use"
 
 ## Assumptions
 
 - Current MongoDB data can be exported and imported to CloudBase NoSQL with schema adaptations as needed
 - WeChat Mini Program environment provides stable access to `wx.cloud` APIs
-- Kimi Claw crawler can be updated to call CloudBase cloud functions instead of REST API endpoints
+- AI recipe generation uses CloudBase AI SDK with Hunyuan or DeepSeek models
 - Recipe images can be migrated to CloudBase Storage or continue using existing URLs
 - Express backend will be fully decommissioned - all functionality migrated to CloudBase
 
@@ -212,3 +224,11 @@ All existing features work reliably without bugs, providing a smooth user experi
 - MCP tools should be available for CloudBase development
 - WeChat Mini Program development tools for testing
 - Existing MongoDB database access for data migration
+
+## Clarifications
+
+### Session 2026-03-06
+
+- **Q**: AI 菜谱搜集的具体方式？→ **A**: 使用 CloudBase 定时触发器 + AI 生成菜谱（Option B）。每天定时触发云函数，调用 AI 模型（混元/DeepSeek）生成原创菜谱内容，直接存储到 CloudBase NoSQL。
+
+- **Q**: 每天生成多少道菜谱？→ **A**: 每天生成 2 道。智能去重：AI 搜索新菜谱，与现有库对比，仅添加不重复的或热度（点赞/收藏）更高的版本。若当天无新内容，则从现有菜谱中推荐 2 道适合当天制作的菜。
