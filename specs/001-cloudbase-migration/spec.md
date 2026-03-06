@@ -149,6 +149,8 @@ All existing features work reliably without bugs, providing a smooth user experi
 
 - **FR-015**: System MUST track recipe heat scores combining internal favoriteCount with external popularity metrics (when available from AI search) to determine which version to keep
 
+- **FR-016**: System MUST use Chinese for all development including code comments, variable naming, UI text, and documentation
+
 ### Key Entities *(include if feature involves data)*
 
 - **Recipe**: Represents a cooking recipe with attributes: name, cuisine, imageUrl, ingredients[], steps[], cookTime, difficulty, tags[], favoriteCount, isDailyRecommended, sourceType (ai_generated|manual), createdAt, updatedAt
@@ -232,3 +234,5 @@ All existing features work reliably without bugs, providing a smooth user experi
 - **Q**: AI 菜谱搜集的具体方式？→ **A**: 使用 CloudBase 定时触发器 + AI 生成菜谱（Option B）。每天定时触发云函数，调用 AI 模型（混元/DeepSeek）生成原创菜谱内容，直接存储到 CloudBase NoSQL。
 
 - **Q**: 每天生成多少道菜谱？→ **A**: 每天生成 2 道。智能去重：AI 搜索新菜谱，与现有库对比，仅添加不重复的或热度（点赞/收藏）更高的版本。若当天无新内容，则从现有菜谱中推荐 2 道适合当天制作的菜。
+
+- **Q**: 项目开发语言要求？→ **A**: 全项目使用中文开发，包括代码注释、变量命名、UI 文本、文档等。
