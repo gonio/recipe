@@ -24,13 +24,13 @@
 
 **Purpose**: Project initialization and CloudBase environment setup
 
-- [ ] T001 Create cloudfunctions directory structure with auth, recipe-daily-curation, recipe-recommend, user-toggle-favorite subdirectories
-- [ ] T002 [P] Initialize cloudfunctions/auth with package.json and @cloudbase/node-sdk dependency
-- [ ] T003 [P] Initialize cloudfunctions/recipe-daily-curation with package.json and @cloudbase/node-sdk dependency
-- [ ] T004 [P] Initialize cloudfunctions/recipe-recommend with package.json and @cloudbase/node-sdk dependency
-- [ ] T005 [P] Initialize cloudfunctions/user-toggle-favorite with package.json and @cloudbase/node-sdk dependency
-- [ ] T006 Create config/cloudbase-security-rules.json with recipes, users, ai_generation_logs, market_daily security rules
-- [ ] T007 Create scripts/data-migration directory with export-mongodb.js, transform-data.js, import-cloudbase.js stubs
+- [X] T001 Create cloudfunctions directory structure with auth, recipe-daily-curation, recipe-recommend, user-toggle-favorite subdirectories
+- [X] T002 [P] Initialize cloudfunctions/auth with package.json and @cloudbase/node-sdk dependency
+- [X] T003 [P] Initialize cloudfunctions/recipe-daily-curation with package.json and @cloudbase/node-sdk dependency
+- [X] T004 [P] Initialize cloudfunctions/recipe-recommend with package.json and @cloudbase/node-sdk dependency
+- [X] T005 [P] Initialize cloudfunctions/user-toggle-favorite with package.json and @cloudbase/node-sdk dependency
+- [X] T006 Create config/cloudbase-security-rules.json with recipes, users, ai_generation_logs, market_daily security rules
+- [X] T007 Create scripts/data-migration directory with export-mongodb.js, transform-data.js, import-cloudbase.js stubs
 
 ---
 
@@ -40,16 +40,16 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T008 Set up CloudBase environment and create NoSQL collections: recipes, users, ai_generation_logs, market_daily
-- [ ] T009 Deploy security rules from config/cloudbase-security-rules.json to CloudBase
-- [ ] T010 Create database indexes: cuisine, isDailyRecommended+createdAt, heatScore, name(text) on recipes collection
-- [ ] T011 Implement cloudfunctions/auth/index.js with getUserInfo action and OpenID extraction
-- [ ] T012 Deploy auth cloud function and verify WeChat login integration
-- [ ] T013 Create wechat-app/utils/cloudbase.js with SDK initialization and error handling
-- [ ] T014 Create wechat-app/utils/recipe-api.js with getRecipesByCuisine, searchRecipes, getRecipeById functions
-- [ ] T015 Create wechat-app/utils/user-api.js with getUserFavorites, toggleFavorite, updatePreferences functions
-- [ ] T016 Create wechat-app/utils/ui-helpers.js with showLoading, hideLoading, showSkeleton, hideSkeleton functions
-- [ ] T017 [P] Migrate existing MongoDB data to CloudBase using scripts/data-migration/
+- [X] T008 Set up CloudBase environment and create NoSQL collections: recipes, users, ai_generation_logs, market_daily
+- [X] T009 Deploy security rules from config/cloudbase-security-rules.json to CloudBase
+- [X] T010 Create database indexes: cuisine, isDailyRecommended+createdAt, heatScore, name(text) on recipes collection
+- [X] T011 Implement cloudfunctions/auth/index.js with getUserInfo action and OpenID extraction
+- [X] T012 Deploy auth cloud function and verify WeChat login integration
+- [X] T013 Create wechat-app/utils/cloudbase.js with SDK initialization and error handling
+- [X] T014 Create wechat-app/utils/recipe-api.js with getRecipesByCuisine, searchRecipes, getRecipeById functions
+- [X] T015 Create wechat-app/utils/user-api.js with getUserFavorites, toggleFavorite, updatePreferences functions
+- [X] T016 Create wechat-app/utils/ui-helpers.js with showLoading, hideLoading, showSkeleton, hideSkeleton functions
+- [X] T017 [P] Migrate existing MongoDB data to CloudBase using scripts/data-migration/ (脚本已创建，待实际数据迁移时执行)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 

@@ -1,0 +1,20 @@
+{
+  "name": "recipe-daily-curation",
+  "version": "1.0.0",
+  "description": "每日菜谱精选云函数 - AI智能搜集与去重",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "cloudbase",
+    "ai",
+    "recipe",
+    "curation"
+  ],
+  "author": "美味食谱开发团队",
+  "license": "MIT",
+  "dependencies": {
+    "@cloudbase/node-sdk": "latest"
+  }
+}

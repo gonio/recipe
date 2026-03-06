@@ -1,0 +1,19 @@
+{
+  "name": "auth-cloudfunction",
+  "version": "1.0.0",
+  "description": "云开发用户认证云函数 - 获取WeChat OpenID并管理用户信息",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "cloudbase",
+    "wechat",
+    "auth"
+  ],
+  "author": "美味食谱开发团队",
+  "license": "MIT",
+  "dependencies": {
+    "@cloudbase/node-sdk": "latest"
+  }
+}

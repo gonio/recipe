@@ -1,0 +1,54 @@
+{
+  "rules": {
+    "recipes": {
+      "read": true,
+      "write": "auth != null && (resource.data._openid == auth.openid || resource.data.sourceType == 'manual')",
+      "validate": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "cuisine": {
+          "type": "string",
+          "enum": ["川菜", "粤菜", "湘菜", "鲁菜", "苏菜", "浙菜", "闽菜", "徽菜", "其他"]
+        },
+        "cookTime": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 1440
+        },
+        "difficulty": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5
+        }
+      }
+    },
+    "users": {
+      "read": "auth != null && resource.data._openid == auth.openid",
+      "write": "auth != null && resource.data._openid == auth.openid",
+      "validate": {
+        "_openid": {
+          "type": "string",
+          "required": true
+        },
+        "preferredCuisines": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["川菜", "粤菜", "湘菜", "鲁菜", "苏菜", "浙菜", "闽菜", "徽菜", "其他"]
+          }
+        }
+      }
+    },
+    "ai_generation_logs": {
+      "read": false,
+      "write": "auth != null && resource.data.jobId != null"
+    },
+    "market_daily": {
+      "read": true,
+      "write": false
+    }
+  }
+}
