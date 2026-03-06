@@ -6,6 +6,8 @@
     "pages/profile/profile",
     "pages/recipe-detail/recipe-detail",
     "pages/search/search",
+    "pages/favorites/favorites",
+    "pages/preferences/preferences",
     "pages/add-recipe/add-recipe",
     "pages/web-view/web-view"
   ],

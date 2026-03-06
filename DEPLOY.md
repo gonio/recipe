@@ -1,232 +1,159 @@
-# 菜谱小程序部署文档
+# 云开发部署指南
 
-## 系统要求
+## 架构概述
 
-- Ubuntu 20.04+ / Debian 11+
-- Node.js 18+
-- 1GB+ RAM
-- 10GB+ 磁盘空间
+本项目使用腾讯云开发 (CloudBase) 作为后端服务，包括：
+- **云数据库**: NoSQL 数据库存储菜谱、用户数据
+- **云函数**: Serverless 后端逻辑
+- **静态托管**: 可选用于 Web 端
 
-## 快速部署
+## 已完成的功能
 
-### 1. 克隆代码
+### US2: Personalized Recipe Collection（个性化菜谱收藏）
 
-```bash
-git clone https://github.com/gonio/recipe.git
-cd recipe/backend
-```
+#### 1. 前端更新
+- `app.js` - 重构为 CloudBase SDK 认证，移除 Express 后端依赖
+- `pages/favorites/` - 收藏列表页面（新建）
+- `pages/preferences/` - 偏好设置页面（新建）
+- `pages/recommend/` - 今日推荐页面（更新为 CloudBase）
+- `pages/profile/` - 个人中心页面（更新为 CloudBase）
+- `pages/market/` - 市场页面（更新为 CloudBase）
+- `pages/search/` - 搜索页面（更新为 CloudBase）
+- `pages/index/` - 首页（更新收藏功能）
+- `utils/user-api.js` - 用户数据 API（更新分页支持）
 
-### 2. 安装依赖
+#### 2. 云函数
+- `cloudfunctions/auth/index.js` - 认证云函数（新增 updateUserInfo 操作）
+- `cloudfunctions/user-toggle-favorite/index.js` - 收藏/取消收藏云函数（新建）
+- `cloudfunctions/recipe-recommend/index.js` - 推荐云函数（新建）
 
-```bash
-npm install
-```
+## 部署步骤
 
-### 3. 配置环境变量
+### 1. 准备工作
 
-```bash
-cp .env.example .env
-# 编辑 .env 文件
-```
+确保已在微信开发者工具中：
+1. 开通云开发环境
+2. 记录环境 ID（如 `prod-8gcm2k4c7068a0e9`）
+3. 更新 `app.js` 中的环境 ID
 
-**必需配置**:
-```bash
-JWT_SECRET=your-secret-key
-API_KEY=your-api-key
-PORT=3000
-```
+### 2. 创建数据库集合
 
-**微信小程序登录** (可选):
-```bash
-WECHAT_APPID=your-wechat-appid
-WECHAT_SECRET=your-wechat-secret
-```
+在云开发控制台 - 数据库中创建以下集合：
+- `recipes` - 菜谱数据
+- `users` - 用户数据
+- `market_daily` - 每日精选
+- `ai_generation_logs` - AI 生成日志（US3 使用）
 
-### 4. 启动服务
+### 3. 配置数据库权限
 
-```bash
-npm start
-```
+设置各集合的安全规则：
 
-服务将在 http://localhost:3000 运行
-
-## 生产环境部署
-
-### 使用 PM2 进程管理
-
-```bash
-npm install -g pm2
-pm2 start server-sqlite.js --name recipe-backend
-pm2 save
-pm2 startup
-```
-
-### 配置 Nginx 反向代理
-
-```bash
-sudo apt-get install nginx
-```
-
-创建配置文件 `/etc/nginx/sites-available/recipe`:
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-    
-    location /api/ {
-        proxy_pass http://127.0.0.1:3000/api/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-    
-    location /health {
-        proxy_pass http://127.0.0.1:3000/health;
-    }
+**recipes 集合**:
+```json
+{
+  "read": true,
+  "write": false
 }
 ```
 
-启用配置:
-```bash
-sudo ln -s /etc/nginx/sites-available/recipe /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
+**users 集合**:
+```json
+{
+  "read": "doc._openid == auth.openid",
+  "write": "doc._openid == auth.openid"
+}
 ```
 
-### 配置 HTTPS (Let's Encrypt)
-
-```bash
-sudo apt-get install certbot python3-certbot-nginx
-sudo certbot --nginx -d your-domain.com
+**market_daily 集合**:
+```json
+{
+  "read": true,
+  "write": false
+}
 ```
 
-### 防火墙配置
+### 4. 部署云函数
 
-```bash
-sudo ufw allow 22/tcp
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
-sudo ufw enable
+在微信开发者工具中：
+
+#### 部署 auth 云函数
 ```
-
-## 安全配置
-
-### SSH 加固
-
-编辑 `/etc/ssh/sshd_config`:
+cloudfunctions/auth
 ```
-PermitRootLogin prohibit-password
-PasswordAuthentication no
-MaxAuthTries 3
+- 右键点击 `auth` 文件夹
+- 选择 "创建并部署：云端安装依赖"
+
+#### 部署 user-toggle-favorite 云函数
 ```
-
-重启 SSH:
-```bash
-sudo systemctl restart ssh
+cloudfunctions/user-toggle-favorite
 ```
+- 右键点击 `user-toggle-favorite` 文件夹
+- 选择 "创建并部署：云端安装依赖"
 
-### 安装 Fail2Ban
-
-```bash
-sudo apt-get install fail2ban
+#### 部署 recipe-recommend 云函数
 ```
-
-创建 `/etc/fail2ban/jail.local`:
-```ini
-[DEFAULT]
-bantime = 3600
-findtime = 600
-maxretry = 3
-
-[sshd]
-enabled = true
+cloudfunctions/recipe-recommend
 ```
+- 右键点击 `recipe-recommend` 文件夹
+- 选择 "创建并部署：云端安装依赖"
 
-```bash
-sudo systemctl restart fail2ban
-```
+### 5. 创建数据库索引
 
-## 前端配置
+在云开发控制台，为 `recipes` 集合创建以下索引：
+- `cuisine` (升序)
+- `heatScore` (降序)
+- `isDailyRecommended` + `createdAt` (复合索引)
 
-修改 `wechat-app/app.js`:
+## 测试验证
 
-```javascript
-App({
-  globalData: {
-    apiBaseUrl: 'https://your-domain.com/api'
-  }
-})
-```
+部署完成后，测试以下功能：
 
-## 定时任务
+### 首页
+- [ ] 浏览菜谱列表
+- [ ] 点击收藏按钮
+- [ ] 搜索菜谱
 
-配置每天自动抓取菜谱:
+### 收藏页面
+- [ ] 查看收藏列表
+- [ ] 取消收藏
+- [ ] 点击进入详情
 
-```bash
-# 使用 cron 每天 9 点执行
-crontab -e
-# 添加:
-0 9 * * * cd /path/to/recipe/kimi-claw-scripts && node ai-crawler.js
-```
+### 推荐页面
+- [ ] 查看个性化推荐
+- [ ] 收藏推荐菜谱
 
-## 备份
+### 个人中心
+- [ ] 查看用户信息
+- [ ] 进入偏好设置
+- [ ] 设置喜欢的菜系
 
-### 数据库备份
+### 偏好设置
+- [ ] 选择/取消菜系
+- [ ] 保存设置
+- [ ] 返回后推荐更新
 
-```bash
-# SQLite 数据库位置
-backend/data/recipe.db
+## 注意事项
 
-# 备份
-cp backend/data/recipe.db backup/recipe-$(date +%Y%m%d).db
-```
+1. **首次部署**
+   - 确保 CloudBase 环境已初始化
+   - 确认数据库集合已创建
+   - 检查安全规则配置
 
-## 故障排查
+2. **云函数依赖**
+   - 所有云函数依赖 `@cloudbase/node-sdk`
+   - 部署时会自动安装依赖
 
-### 查看日志
+3. **调试**
+   - 使用微信开发者工具的 "云开发" 面板查看日志
+   - 检查数据库中的数据是否正确写入
 
-```bash
-# PM2 日志
-pm2 logs recipe-backend
+## 旧版 Express 后端
 
-# Nginx 日志
-sudo tail -f /var/log/nginx/error.log
-```
+如需查看旧版部署文档，请参考 `DEPLOY-legacy.md`。
 
-### 检查服务状态
+## 下一步
 
-```bash
-# 后端服务
-pm2 status
-
-# Nginx
-sudo systemctl status nginx
-
-# 数据库
-ls -la backend/data/
-```
-
-## API 接口
-
-| 接口 | 方法 | 说明 |
-|------|------|------|
-| /api/auth/wechat-login | POST | 微信登录 |
-| /api/auth/user | GET | 获取用户信息 |
-| /api/recipes/cuisines | GET | 获取菜系列表 |
-| /api/recipes/search | GET | 搜索菜谱 |
-| /api/recipes/detail/:id | GET | 菜谱详情 |
-| /api/recipes/favorites | GET | 收藏列表 |
-| /api/recipes/market | GET | 市场菜谱 |
-| /api/recipes/daily-recommend | GET | 今日推荐 |
-
-## 技术栈
-
-- **后端**: Node.js + Express + Sequelize + SQLite
-- **前端**: 微信小程序
-- **进程管理**: PM2
-- **反向代理**: Nginx
-- **安全**: Fail2Ban + UFW
-
-## 许可证
-
-MIT
+继续 US3: Smart Daily Recipe Curation（智能每日菜谱精选）
+- 实现 AI 菜谱生成
+- 创建每日精选云函数
+- 配置定时触发器

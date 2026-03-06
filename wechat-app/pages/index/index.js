@@ -4,7 +4,8 @@
  */
 
 const { getRecipesByCuisine, searchRecipes, PAGE_SIZE } = require('../../utils/recipe-api');
-const { showLoading, hideLoading, handleCloudError } = require('../../utils/ui-helpers');
+const { toggleFavorite } = require('../../utils/user-api');
+const { showLoading, hideLoading, handleCloudError, showSuccess, showError } = require('../../utils/ui-helpers');
 
 const app = getApp();
 
@@ -274,12 +275,34 @@ Page({
   async onToggleFavorite(e) {
     const { recipeId, isFavorited } = e.detail;
 
-    // 这里需要调用收藏 API
-    // 暂时只显示提示
-    wx.showToast({
-      title: isFavorited ? '已添加收藏' : '已取消收藏',
-      icon: 'success'
-    });
+    try {
+      showLoading('处理中...');
+      await toggleFavorite(recipeId, isFavorited);
+      hideLoading();
+
+      showSuccess(isFavorited ? '收藏成功' : '已取消收藏');
+
+      // 更新本地菜谱数据中的收藏数
+      const { recipes } = this.data;
+      const updatedRecipes = recipes.map(recipe => {
+        if (recipe._id === recipeId) {
+          return {
+            ...recipe,
+            favoriteCount: (recipe.favoriteCount || 0) + (isFavorited ? 1 : -1)
+          };
+        }
+        return recipe;
+      });
+
+      this.setData({ recipes: updatedRecipes });
+
+      // 标记收藏列表需要刷新
+      getApp().markFavoritesNeedRefresh();
+    } catch (error) {
+      hideLoading();
+      console.error('收藏操作失败:', error);
+      showError('操作失败');
+    }
   },
 
   /**

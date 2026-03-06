@@ -51,6 +51,51 @@ async function getOrCreateUser(openid, userInfo = {}) {
 }
 
 /**
+ * 更新用户信息
+ * @param {string} openid - WeChat OpenID
+ * @param {Object} userInfo - 更新的用户信息
+ */
+async function updateUserInfo(openid, userInfo) {
+  const usersCollection = db.collection('users');
+
+  // 查找现有用户
+  const userResult = await usersCollection.where({
+    _openid: openid
+  }).get();
+
+  if (userResult.data.length === 0) {
+    // 用户不存在，创建新用户
+    const { user } = await getOrCreateUser(openid, userInfo);
+    return user;
+  }
+
+  const existingUser = userResult.data[0];
+
+  // 更新用户信息
+  const updateData = {
+    updatedAt: db.serverDate()
+  };
+
+  if (userInfo.nickName !== undefined) {
+    updateData.nickname = userInfo.nickName;
+  }
+  if (userInfo.avatarUrl !== undefined) {
+    updateData.avatarUrl = userInfo.avatarUrl;
+  }
+  if (userInfo.gender !== undefined) {
+    updateData.gender = userInfo.gender;
+  }
+
+  await usersCollection.doc(existingUser._id).update(updateData);
+
+  // 返回更新后的用户信息
+  return {
+    ...existingUser,
+    ...updateData
+  };
+}
+
+/**
  * 云函数入口函数
  * @param {Object} event - 调用参数
  * @param {Object} context - 上下文
@@ -81,6 +126,21 @@ exports.main = async (event, context) => {
             user,
             isNewUser
           }
+        };
+
+      case 'updateUserInfo':
+        if (!userInfo) {
+          return {
+            code: 1004,
+            message: 'Missing userInfo parameter',
+            data: null
+          };
+        }
+        const updatedUser = await updateUserInfo(OPENID, userInfo);
+        return {
+          code: 0,
+          message: 'success',
+          data: updatedUser
         };
 
       default:

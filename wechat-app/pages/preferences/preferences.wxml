@@ -1,0 +1,32 @@
+<!-- 偏好设置页面 -->
+<view class="container">
+  <!-- 页面说明 -->
+  <view class="header">
+    <text class="header-title">选择您喜欢的菜系</text>
+    <text class="header-desc">我们将根据您的偏好为您推荐菜谱</text>
+  </view>
+
+  <!-- 菜系列表 -->
+  <view class="cuisines-section">
+    <view
+      wx:for="{{cuisines}}"
+      wx:key="*this"
+      class="cuisine-item {{selectedCuisines.includes(item) ? 'selected' : ''}}"
+      bindtap="toggleCuisine"
+      data-cuisine="{{item}}"
+    >
+      <text class="cuisine-name">{{item}}</text>
+      <view class="check-icon" wx:if="{{selectedCuisines.includes(item)}}">
+        <image src="/images/check-white.png" mode="aspectFit" />
+      </view>
+    </view>
+  </view>
+
+  <!-- 保存按钮 -->
+  <view class="save-section">
+    <view class="save-btn {{selectedCuisines.length > 0 ? 'active' : ''}}" bindtap="savePreferences">
+      <text>保存设置</text>
+    </view>
+    <text class="save-tip">已选择 {{selectedCuisines.length}} 个菜系</text>
+  </view>
+</view>

@@ -1,0 +1,45 @@
+<!-- 我的收藏页面 -->
+<view class="container">
+  <!-- 骨架屏 -->
+  <loading-skeleton wx:if="{{isLoading}}" type="list" />
+
+  <!-- 收藏列表 -->
+  <view wx:elif="{{favorites.length > 0}}" class="favorites-content">
+    <view class="favorites-header">
+      <text class="favorites-count">共 {{favorites.length}} 道收藏菜谱</text>
+    </view>
+
+    <view class="favorites-list">
+      <recipe-card
+        wx:for="{{favorites}}"
+        wx:key="_id"
+        recipe="{{item}}"
+        showFavorite="{{true}}"
+        isFavorited="{{true}}"
+        bind:tap="onRecipeTap"
+        bind:favorite="onToggleFavorite"
+      />
+    </view>
+
+    <!-- 加载更多 -->
+    <view wx:if="{{isLoadingMore}}" class="loading-more">
+      <view class="loading-spinner"></view>
+      <text>加载中...</text>
+    </view>
+
+    <!-- 到底提示 -->
+    <view wx:if="{{!hasMore && favorites.length > 10}}" class="no-more">
+      <text>—— 已经到底啦 ——</text>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:else class="empty-state">
+    <image src="/images/empty-favorites.png" mode="aspectFit" class="empty-icon" />
+    <text class="empty-title">还没有收藏菜谱</text>
+    <text class="empty-desc">点击菜谱详情的爱心图标，收藏喜欢的菜谱</text>
+    <view class="explore-btn" bindtap="goToExplore">
+      <text>去发现美食</text>
+    </view>
+  </view>
+</view>

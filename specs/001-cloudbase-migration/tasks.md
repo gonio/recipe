@@ -98,27 +98,27 @@
 
 ### Authentication & User Data (User Story 2)
 
-- [ ] T031 [US2] Update wechat-app/app.js to call auth cloud function on launch and store userInfo in globalData
-- [ ] T032 [US2] Implement auto user creation on first interaction in cloudfunctions/auth/index.js
+- [X] T031 [US2] Update wechat-app/app.js to call auth cloud function on launch and store userInfo in globalData
+- [X] T032 [US2] Implement auto user creation on first interaction in cloudfunctions/auth/index.js
 
 ### Favorites Functionality (User Story 2)
 
-- [ ] T033 [US2] Implement cloudfunctions/user-toggle-favorite/index.js with add/remove actions and transaction support
-- [ ] T034 [US2] Deploy user-toggle-favorite cloud function and test favorite/unfavorite operations
-- [ ] T035 [US2] Create wechat-app/pages/favorites/ directory with WXML, WXSS, JS for favorites list page
-- [ ] T036 [US2] Add heart button animation and toast feedback to recipe-card component for favorite action
+- [X] T033 [US2] Implement cloudfunctions/user-toggle-favorite/index.js with add/remove actions and transaction support
+- [X] T034 [US2] Deploy user-toggle-favorite cloud function and test favorite/unfavorite operations
+- [X] T035 [US2] Create wechat-app/pages/favorites/ directory with WXML, WXSS, JS for favorites list page
+- [X] T036 [US2] Add heart button animation and toast feedback to recipe-card component for favorite action
 
 ### Recommendations (User Story 2)
 
-- [ ] T037 [US2] Implement cloudfunctions/recipe-recommend/index.js with personalized recommendation algorithm
-- [ ] T038 [US2] Deploy recipe-recommend cloud function
-- [ ] T039 [US2] Create wechat-app/pages/recommend/ directory with WXML, WXSS, JS for recommendations page
-- [ ] T040 [US2] Add preference settings UI in profile page for cuisine preferences
+- [X] T037 [US2] Implement cloudfunctions/recipe-recommend/index.js with personalized recommendation algorithm
+- [X] T038 [US2] Deploy recipe-recommend cloud function
+- [X] T039 [US2] Create wechat-app/pages/recommend/ directory with WXML, WXSS, JS for recommendations page
+- [X] T040 [US2] Add preference settings UI in profile page for cuisine preferences
 
 ### Profile Page (User Story 2)
 
-- [ ] T041 [US2] Create wechat-app/pages/profile/ directory with user info display and preference settings
-- [ ] T042 [US2] Integrate user preferences with recommendation system
+- [X] T041 [US2] Create wechat-app/pages/profile/ directory with user info display and preference settings
+- [X] T042 [US2] Integrate user preferences with recommendation system
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 

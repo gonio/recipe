@@ -8,9 +8,11 @@ const _ = db.command;
 
 /**
  * 获取当前用户的收藏列表
- * @returns {Promise<Array>} 收藏的菜谱列表
+ * @param {number} page - 页码（从 0 开始）
+ * @param {number} pageSize - 每页数量
+ * @returns {Promise<Object>} 收藏的菜谱列表
  */
-async function getUserFavorites() {
+async function getUserFavorites(page = 0, pageSize = 20) {
   try {
     // 获取当前用户的收藏 ID 列表
     const userResult = await db.collection('users')
@@ -18,24 +20,36 @@ async function getUserFavorites() {
       .get();
 
     if (!userResult.data.length) {
-      return [];
+      return { data: [], total: 0 };
     }
 
     const favoriteIds = userResult.data[0].favorites || [];
 
     if (!favoriteIds.length) {
-      return [];
+      return { data: [], total: 0 };
+    }
+
+    // 分页处理
+    const start = page * pageSize;
+    const end = start + pageSize;
+    const paginatedIds = favoriteIds.slice(start, end);
+
+    if (!paginatedIds.length) {
+      return { data: [], total: favoriteIds.length };
     }
 
     // 获取收藏的菜谱详情
     const recipesResult = await db.collection('recipes')
-      .where({ _id: _.in(favoriteIds) })
+      .where({ _id: _.in(paginatedIds) })
       .get();
 
-    return recipesResult.data;
+    return {
+      data: recipesResult.data,
+      total: favoriteIds.length
+    };
   } catch (error) {
     console.error('获取收藏失败:', error);
-    return [];
+    return { data: [], total: 0 };
   }
 }
 

@@ -1,461 +1,320 @@
+/**
+ * 美味食谱 - 小程序入口
+ * 使用 CloudBase 云开发
+ */
+
 App({
   globalData: {
+    // 用户信息
     userInfo: null,
-    token: null,
-    refreshToken: null,
-    apiBaseUrl: 'https://122.152.229.4/api', // 请替换为你的域名
+    openid: null,
+    isLogin: false,
+
+    // 用户偏好
     preferredCuisines: [],
-    isLoggingIn: false, // 登录中标记，防止并发登录
-    requestQueue: [], // 请求队列，用于登录后重试
-    pendingRequests: new Map(), // 请求去重缓存
-    needRefreshFavorites: false // 是否需要刷新收藏列表
+
+    // 全局状态
+    needRefreshFavorites: false,
+    needRefreshProfile: false
   },
 
   onLaunch() {
-    // 检查本地存储的 token
-    const token = wx.getStorageSync('token');
-    const refreshToken = wx.getStorageSync('refreshToken');
-    if (token) {
-      this.globalData.token = token;
-      this.globalData.refreshToken = refreshToken;
-      this.getUserInfo().catch(() => {
-        // 获取用户信息失败，token 可能已过期
-        console.log('Token 已过期，需要重新登录');
-      });
+    // 初始化 CloudBase
+    this.initCloudBase();
+
+    // 获取用户信息
+    this.fetchUserInfo();
+
+    // 获取系统信息用于适配
+    this.getSystemInfo();
+  },
+
+  onShow() {
+    // 检查是否需要刷新收藏列表
+    if (this.globalData.needRefreshFavorites) {
+      this.globalData.needRefreshFavorites = false;
+      // 触发收藏页面刷新事件
+      this.emitFavoritesRefresh();
+    }
+
+    // 检查是否需要刷新个人资料
+    if (this.globalData.needRefreshProfile) {
+      this.globalData.needRefreshProfile = false;
+      this.fetchUserInfo();
     }
   },
 
-  // 微信小程序登录
-  login() {
-    return new Promise((resolve, reject) => {
-      // 如果已经在登录中，等待登录完成
-      if (this.globalData.isLoggingIn) {
-        const checkLogin = setInterval(() => {
-          if (!this.globalData.isLoggingIn) {
-            clearInterval(checkLogin);
-            if (this.globalData.token) {
-              resolve({ token: this.globalData.token, user: this.globalData.userInfo });
-            } else {
-              reject(new Error('登录失败'));
-            }
-          }
-        }, 100);
-        return;
-      }
-
-      this.globalData.isLoggingIn = true;
-
-      wx.login({
-        success: (res) => {
-          if (res.code) {
-            // 获取用户信息（可选，用户可能拒绝）
-            wx.getUserProfile({
-              desc: '用于完善用户资料',
-              success: (userRes) => {
-                this.doLogin(res.code, userRes.userInfo, resolve, reject);
-              },
-              fail: () => {
-                // 用户拒绝授权，仍然可以登录
-                this.doLogin(res.code, null, resolve, reject);
-              }
-            });
-          } else {
-            this.globalData.isLoggingIn = false;
-            reject(new Error('登录失败'));
-          }
-        },
-        fail: (err) => {
-          this.globalData.isLoggingIn = false;
-          reject(err);
-        }
-      });
-    });
-  },
-
-  // 执行登录请求
-  doLogin(code, userInfo, resolve, reject) {
-    wx.request({
-      url: `${this.globalData.apiBaseUrl}/auth/wechat-login`,
-      method: 'POST',
-      data: {
-        code,
-        userInfo
-      },
-      success: (res) => {
-        if (res.data.success) {
-          const { token, refreshToken, user } = res.data.data;
-          
-          // 保存 token
-          wx.setStorageSync('token', token);
-          this.globalData.token = token;
-          
-          // 保存 refresh token（如果后端返回）
-          if (refreshToken) {
-            wx.setStorageSync('refreshToken', refreshToken);
-            this.globalData.refreshToken = refreshToken;
-          }
-          
-          this.globalData.userInfo = user;
-          this.globalData.preferredCuisines = user.preferredCuisines || [];
-          this.globalData.isLoggingIn = false;
-          
-          // 处理等待队列中的请求
-          this.processRequestQueue();
-          
-          resolve(res.data.data);
-        } else {
-          this.globalData.isLoggingIn = false;
-          reject(new Error(res.data.message || '登录失败'));
-        }
-      },
-      fail: (err) => {
-        this.globalData.isLoggingIn = false;
-        reject(err);
-      }
-    });
-  },
-
-  // 刷新 Token
-  refreshToken() {
-    return new Promise((resolve, reject) => {
-      const refreshToken = this.globalData.refreshToken;
-      if (!refreshToken) {
-        reject(new Error('没有 refresh token'));
-        return;
-      }
-
-      wx.request({
-        url: `${this.globalData.apiBaseUrl}/auth/refresh`,
-        method: 'POST',
-        header: {
-          'Authorization': `Bearer ${refreshToken}`
-        },
-        success: (res) => {
-          if (res.data.success && res.data.data.token) {
-            const { token, refreshToken: newRefreshToken } = res.data.data;
-            
-            wx.setStorageSync('token', token);
-            this.globalData.token = token;
-            
-            if (newRefreshToken) {
-              wx.setStorageSync('refreshToken', newRefreshToken);
-              this.globalData.refreshToken = newRefreshToken;
-            }
-            
-            resolve(token);
-          } else {
-            reject(new Error('刷新 token 失败'));
-          }
-        },
-        fail: reject
-      });
-    });
-  },
-
-  // 获取用户信息（带缓存和去重）
-  getUserInfo() {
-    return new Promise((resolve, reject) => {
-      if (!this.globalData.token) {
-        // 没有token，引导用户登录
-        this.showReLoginModal()
-          .then(() => this.getUserInfo())
-          .then(resolve)
-          .catch(reject);
-        return;
-      }
-
-      // 如果已有用户信息，直接返回缓存
-      if (this.globalData.userInfo) {
-        resolve(this.globalData.userInfo);
-        return;
-      }
-
-      // 如果正在请求用户信息，等待请求完成
-      const cacheKey = 'GET:/auth/user';
-      if (this.globalData.pendingRequests.has(cacheKey)) {
-        this.globalData.pendingRequests.get(cacheKey).push({ resolve, reject });
-        return;
-      }
-
-      // 创建新的请求队列
-      this.globalData.pendingRequests.set(cacheKey, [{ resolve, reject }]);
-
-      wx.request({
-        url: `${this.globalData.apiBaseUrl}/auth/user`,
-        header: {
-          'Authorization': `Bearer ${this.globalData.token}`
-        },
-        success: (res) => {
-          const callbacks = this.globalData.pendingRequests.get(cacheKey) || [];
-          this.globalData.pendingRequests.delete(cacheKey);
-
-          if (res.data.success) {
-            this.globalData.userInfo = res.data.data;
-            this.globalData.preferredCuisines = res.data.data.preferredCuisines || [];
-            callbacks.forEach(cb => cb.resolve(res.data.data));
-          } else {
-            // token 可能过期了
-            if (res.statusCode === 401) {
-              this.clearAuthData();
-              // 引导用户重新登录
-              this.showReLoginModal()
-                .then(() => this.getUserInfo())
-                .then(data => callbacks.forEach(cb => cb.resolve(data)))
-                .catch(err => callbacks.forEach(cb => cb.reject(err)));
-              return;
-            }
-            const error = new Error(res.data.message || '获取用户信息失败');
-            callbacks.forEach(cb => cb.reject(error));
-          }
-        },
-        fail: (err) => {
-          const callbacks = this.globalData.pendingRequests.get(cacheKey) || [];
-          this.globalData.pendingRequests.delete(cacheKey);
-          callbacks.forEach(cb => cb.reject(err));
-        }
-      });
-    });
-  },
-
-  // 清除认证数据
-  clearAuthData() {
-    this.globalData.token = null;
-    this.globalData.refreshToken = null;
-    this.globalData.userInfo = null;
-    wx.removeStorageSync('token');
-    wx.removeStorageSync('refreshToken');
-  },
-
-  // 封装的请求方法（支持 JWT 认证、自动重试和请求去重）
-  request(options, isRetry = false) {
-    return new Promise((resolve, reject) => {
-      const method = options.method || 'GET';
-      
-      // 添加 Authorization header
-      const header = options.header || {};
-      if (this.globalData.token) {
-        header['Authorization'] = `Bearer ${this.globalData.token}`;
-      }
-
-      // 构建完整 URL
-      const fullUrl = `${this.globalData.apiBaseUrl}${options.url}`;
-
-      // GET 请求去重：相同 URL 和参数的 GET 请求合并
-      let cacheKey = null;
-      if (method === 'GET' && !isRetry) {
-        const dataStr = options.data ? JSON.stringify(options.data) : '';
-        cacheKey = `${method}:${fullUrl}:${dataStr}`;
-        
-        if (this.globalData.pendingRequests.has(cacheKey)) {
-          this.globalData.pendingRequests.get(cacheKey).push({ resolve, reject });
-          return;
-        }
-        
-        this.globalData.pendingRequests.set(cacheKey, [{ resolve, reject }]);
-      }
-
-      const doRequest = () => {
-        wx.request({
-          url: fullUrl,
-          method: method,
-          data: options.data,
-          header,
-          success: async (res) => {
-            // 处理 GET 请求去重回调
-            if (cacheKey) {
-              const callbacks = this.globalData.pendingRequests.get(cacheKey) || [];
-              this.globalData.pendingRequests.delete(cacheKey);
-              
-              // 支持 200-299 的成功状态码，success 可以是布尔值或字符串
-              const isSuccess = res.data.success === true || res.data.success === 'true' || res.data.success === 1;
-              if (res.statusCode >= 200 && res.statusCode < 300 && isSuccess) {
-                callbacks.forEach(cb => cb.resolve(res.data));
-              } else if (res.statusCode === 401) {
-                // Token 过期，尝试刷新或重新登录
-                if (!isRetry) {
-                  try {
-                    await this.handleAuthError();
-                    // 重试原请求
-                    const retryResult = await this.request(options, true);
-                    callbacks.forEach(cb => cb.resolve(retryResult));
-                  } catch (error) {
-                    // 自动恢复失败，引导用户手动登录
-                    this.showReLoginModal().then(() => {
-                      // 用户登录成功后，重试原请求
-                      this.request(options, true)
-                        .then(retryResult => callbacks.forEach(cb => cb.resolve(retryResult)))
-                        .catch(err => callbacks.forEach(cb => cb.reject(err)));
-                    }).catch(() => {
-                      const err = new Error('用户取消登录');
-                      callbacks.forEach(cb => cb.reject(err));
-                    });
-                  }
-                } else {
-                  // 重试后仍然 401，引导用户手动登录
-                  this.showReLoginModal().then(() => {
-                    this.request(options, true)
-                      .then(retryResult => callbacks.forEach(cb => cb.resolve(retryResult)))
-                      .catch(err => callbacks.forEach(cb => cb.reject(err)));
-                  }).catch(() => {
-                    this.clearAuthData();
-                    const err = new Error('用户取消登录');
-                    callbacks.forEach(cb => cb.reject(err));
-                  });
-                }
-              } else {
-                const error = new Error(res.data.message || '请求失败');
-                callbacks.forEach(cb => cb.reject(error));
-              }
-              return;
-            }
-
-            // 非 GET 请求或非去重请求的直接处理
-            console.log('请求响应:', res.statusCode, res.data);
-            // 支持 200-299 的成功状态码，success 可以是布尔值或字符串
-            const isSuccess = res.data.success === true || res.data.success === 'true' || res.data.success === 1;
-            if (res.statusCode >= 200 && res.statusCode < 300 && isSuccess) {
-              resolve(res.data);
-            } else if (res.statusCode === 401) {
-              // Token 过期，尝试刷新或重新登录
-              if (!isRetry) {
-                try {
-                  await this.handleAuthError();
-                  // 重试原请求
-                  this.request(options, true)
-                    .then(resolve)
-                    .catch(reject);
-                } catch (error) {
-                  // 自动恢复失败，引导用户手动登录
-                  this.showReLoginModal().then(() => {
-                    this.request(options, true)
-                      .then(resolve)
-                      .catch(reject);
-                  }).catch(() => reject(new Error('用户取消登录')));
-                }
-              } else {
-                // 重试后仍然 401，引导用户手动登录
-                this.showReLoginModal().then(() => {
-                  this.request(options, true)
-                    .then(resolve)
-                    .catch(reject);
-                }).catch(() => {
-                  this.clearAuthData();
-                  reject(new Error('用户取消登录'));
-                });
-              }
-            } else {
-              reject(new Error(res.data.message || '请求失败'));
-            }
-          },
-          fail: (err) => {
-            if (cacheKey) {
-              const callbacks = this.globalData.pendingRequests.get(cacheKey) || [];
-              this.globalData.pendingRequests.delete(cacheKey);
-              callbacks.forEach(cb => cb.reject(err));
-            } else {
-              reject(err);
-            }
-          }
-        });
-      };
-
-      // 如果正在登录中，将请求加入队列
-      if (this.globalData.isLoggingIn && !isRetry) {
-        this.globalData.requestQueue.push({ options, resolve, reject });
-        return;
-      }
-
-      doRequest();
-    });
-  },
-
-  // 显示重新登录对话框
-  showReLoginModal() {
-    return new Promise((resolve, reject) => {
+  /**
+   * 初始化 CloudBase
+   */
+  initCloudBase() {
+    // 检查是否已初始化
+    if (!wx.cloud) {
+      console.error('请使用 2.2.3 或以上的基础库以使用云能力');
       wx.showModal({
-        title: '登录已过期',
-        content: '您的登录状态已过期，需要重新登录才能继续操作',
-        confirmText: '去登录',
-        cancelText: '取消',
-        confirmColor: '#42A5F5',
-        success: (res) => {
-          if (res.confirm) {
-            // 用户点击登录，执行登录流程
-            this.login()
-              .then(() => {
-                wx.showToast({ title: '登录成功', icon: 'success' });
-                resolve();
-              })
-              .catch((err) => {
-                wx.showToast({ title: '登录失败，请重试', icon: 'none' });
-                reject(err);
-              });
-          } else {
-            // 用户取消
-            reject(new Error('用户取消登录'));
-          }
-        },
-        fail: reject
+        title: '提示',
+        content: '当前微信版本过低，无法使用云开发功能，请升级到最新微信版本后重试。',
+        showCancel: false
       });
-    });
-  },
-
-  // 处理认证错误（刷新 token 或重新登录）
-  async handleAuthError() {
-    try {
-      // 先尝试刷新 token
-      if (this.globalData.refreshToken) {
-        await this.refreshToken();
-        return;
-      }
-    } catch (error) {
-      console.log('刷新 token 失败，尝试重新登录');
+      return;
     }
 
-    // 刷新失败，尝试重新登录
+    // 初始化云开发环境
+    wx.cloud.init({
+      env: 'prod-8gcm2k4c7068a0e9', // 云开发环境ID
+      traceUser: true // 记录用户访问日志
+    });
+
+    console.log('CloudBase 初始化成功');
+  },
+
+  /**
+   * 获取系统信息
+   */
+  getSystemInfo() {
     try {
-      await this.login();
+      const systemInfo = wx.getSystemInfoSync();
+      this.globalData.systemInfo = systemInfo;
+
+      // 计算安全区域
+      if (systemInfo.safeArea) {
+        this.globalData.safeArea = systemInfo.safeArea;
+      }
+
+      // 判断是否为刘海屏
+      this.globalData.isNotch = systemInfo.screenHeight - systemInfo.windowHeight > 50;
     } catch (error) {
-      console.log('重新登录失败');
+      console.error('获取系统信息失败:', error);
+    }
+  },
+
+  /**
+   * 调用云函数获取用户信息
+   */
+  async fetchUserInfo() {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'auth',
+        data: {
+          action: 'getUserInfo'
+        }
+      });
+
+      if (result.code === 0 && result.data) {
+        const { user, openid } = result.data;
+
+        this.globalData.userInfo = user;
+        this.globalData.openid = openid;
+        this.globalData.isLogin = true;
+        this.globalData.preferredCuisines = user.preferredCuisines || [];
+
+        console.log('用户信息获取成功:', user.nickName || '匿名用户');
+
+        // 触发用户登录成功事件
+        this.emitLoginSuccess(user);
+
+        return user;
+      } else {
+        console.warn('获取用户信息失败:', result.message);
+        return null;
+      }
+    } catch (error) {
+      console.error('调用 auth 云函数失败:', error);
+      return null;
+    }
+  },
+
+  /**
+   * 更新用户微信信息（用户主动授权后）
+   */
+  async updateUserProfile(userProfile) {
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'auth',
+        data: {
+          action: 'updateUserInfo',
+          userInfo: userProfile
+        }
+      });
+
+      if (result.code === 0 && result.data) {
+        this.globalData.userInfo = result.data;
+        this.globalData.isLogin = true;
+        return result.data;
+      } else {
+        throw new Error(result.message || '更新用户信息失败');
+      }
+    } catch (error) {
+      console.error('更新用户信息失败:', error);
       throw error;
     }
   },
 
-  // 处理请求队列（登录成功后重试）
-  processRequestQueue() {
-    const queue = this.globalData.requestQueue;
-    this.globalData.requestQueue = [];
-    
-    queue.forEach(({ options, resolve, reject }) => {
-      this.request(options, true)
-        .then(resolve)
-        .catch(reject);
-    });
+  /**
+   * 获取当前用户 OpenID
+   */
+  getOpenId() {
+    return this.globalData.openid;
   },
 
-  // 退出登录
-  logout() {
-    this.clearAuthData();
-    wx.showToast({ title: '已退出登录', icon: 'success' });
+  /**
+   * 检查是否已登录
+   */
+  isLoggedIn() {
+    return this.globalData.isLogin && this.globalData.openid;
   },
 
-  // 显示加载提示
+  /**
+   * 获取用户偏好菜系
+   */
+  getPreferredCuisines() {
+    return this.globalData.preferredCuisines || [];
+  },
+
+  /**
+   * 设置用户偏好菜系
+   */
+  setPreferredCuisines(cuisines) {
+    this.globalData.preferredCuisines = cuisines;
+  },
+
+  /**
+   * 标记需要刷新收藏列表
+   */
+  markFavoritesNeedRefresh() {
+    this.globalData.needRefreshFavorites = true;
+  },
+
+  /**
+   * 标记需要刷新个人资料
+   */
+  markProfileNeedRefresh() {
+    this.globalData.needRefreshProfile = true;
+  },
+
+  // ========== 事件系统 ==========
+
+  /**
+   * 触发登录成功事件
+   */
+  emitLoginSuccess(userInfo) {
+    if (this.loginSuccessCallbacks) {
+      this.loginSuccessCallbacks.forEach(callback => {
+        try {
+          callback(userInfo);
+        } catch (error) {
+          console.error('登录成功回调执行失败:', error);
+        }
+      });
+    }
+  },
+
+  /**
+   * 注册登录成功回调
+   */
+  onLoginSuccess(callback) {
+    if (!this.loginSuccessCallbacks) {
+      this.loginSuccessCallbacks = [];
+    }
+    this.loginSuccessCallbacks.push(callback);
+
+    // 如果已经登录，立即执行回调
+    if (this.globalData.isLogin && this.globalData.userInfo) {
+      callback(this.globalData.userInfo);
+    }
+  },
+
+  /**
+   * 移除登录成功回调
+   */
+  offLoginSuccess(callback) {
+    if (this.loginSuccessCallbacks) {
+      const index = this.loginSuccessCallbacks.indexOf(callback);
+      if (index > -1) {
+        this.loginSuccessCallbacks.splice(index, 1);
+      }
+    }
+  },
+
+  /**
+   * 触发收藏列表刷新事件
+   */
+  emitFavoritesRefresh() {
+    if (this.favoritesRefreshCallbacks) {
+      this.favoritesRefreshCallbacks.forEach(callback => {
+        try {
+          callback();
+        } catch (error) {
+          console.error('收藏刷新回调执行失败:', error);
+        }
+      });
+    }
+  },
+
+  /**
+   * 注册收藏列表刷新回调
+   */
+  onFavoritesRefresh(callback) {
+    if (!this.favoritesRefreshCallbacks) {
+      this.favoritesRefreshCallbacks = [];
+    }
+    this.favoritesRefreshCallbacks.push(callback);
+  },
+
+  /**
+   * 移除收藏列表刷新回调
+   */
+  offFavoritesRefresh(callback) {
+    if (this.favoritesRefreshCallbacks) {
+      const index = this.favoritesRefreshCallbacks.indexOf(callback);
+      if (index > -1) {
+        this.favoritesRefreshCallbacks.splice(index, 1);
+      }
+    }
+  },
+
+  // ========== 通用工具方法 ==========
+
+  /**
+   * 显示加载提示
+   */
   showLoading(title = '加载中...') {
     wx.showLoading({ title, mask: true });
   },
 
-  // 隐藏加载
+  /**
+   * 隐藏加载
+   */
   hideLoading() {
     wx.hideLoading();
   },
 
-  // 显示成功提示
+  /**
+   * 显示成功提示
+   */
   showSuccess(title) {
     wx.showToast({ title, icon: 'success' });
   },
 
-  // 显示错误提示
+  /**
+   * 显示错误提示
+   */
   showError(title) {
     wx.showToast({ title, icon: 'none' });
+  },
+
+  /**
+   * 显示确认对话框
+   */
+  showConfirm(title, content) {
+    return new Promise((resolve) => {
+      wx.showModal({
+        title,
+        content,
+        success: (res) => {
+          resolve(res.confirm);
+        }
+      });
+    });
   }
 });

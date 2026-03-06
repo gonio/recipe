@@ -1,5 +1,9 @@
 {
-  "usingComponents": {},
+  "navigationBarTitleText": "今日推荐",
+  "backgroundColor": "#F5F9FF",
   "enablePullDownRefresh": true,
-  "backgroundColor": "#F5F9FF"
+  "usingComponents": {
+    "recipe-card": "/components/recipe-card/recipe-card",
+    "loading-skeleton": "/components/loading-skeleton/loading-skeleton"
+  }
 }

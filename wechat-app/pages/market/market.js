@@ -1,19 +1,27 @@
-const app = getApp();
+/**
+ * 市场页面 - 展示每日精选菜谱
+ * 使用 CloudBase SDK
+ */
+
+const { getRecipesByCuisine, getMarketRecipes } = require('../../utils/recipe-api');
+const { toggleFavorite } = require('../../utils/user-api');
+const { showLoading, hideLoading, showSuccess, showError } = require('../../utils/ui-helpers');
 
 Page({
   data: {
     recipes: [],
-    page: 1,
-    limit: 20,
+    page: 0,
+    limit: 10,
     loading: false,
     loadingMore: false,
     noMore: false,
-    newCount: 0,
+
     // 搜索相关
     keyword: '',
     searchFocus: false,
-    // 菜系筛选（从接口获取）
-    cuisines: ['全部'],
+
+    // 菜系筛选
+    cuisines: ['全部', '川菜', '粤菜', '湘菜', '鲁菜', '苏菜', '浙菜', '闽菜', '徽菜', '家常菜'],
     selectedCuisine: '全部'
   },
 
@@ -22,15 +30,15 @@ Page({
   },
 
   onShow() {
-    // 每次显示刷新数据
-    if (this.data.recipes.length > 0) {
-      this.setData({ page: 1 });
-      this.loadRecipes();
+    // 检查是否需要刷新
+    if (getApp().globalData.needRefreshMarket) {
+      getApp().globalData.needRefreshMarket = false;
+      this.loadData();
     }
   },
 
   onPullDownRefresh() {
-    this.setData({ page: 1, noMore: false });
+    this.setData({ page: 0, noMore: false });
     this.loadData().finally(() => {
       wx.stopPullDownRefresh();
     });
@@ -45,54 +53,45 @@ Page({
   // 加载数据
   async loadData() {
     this.setData({ loading: true });
-    
-    try {
-      // 获取新菜谱数量（使用 getUserInfo 以利用缓存）
-      const userInfo = await app.getUserInfo();
-      this.setData({ newCount: userInfo.newRecipesCount || 0 });
 
-      await this.loadRecipes();
+    try {
+      // 尝试获取市场精选菜谱
+      const marketRecipes = await getMarketRecipes();
+
+      if (marketRecipes.length > 0) {
+        this.setData({
+          recipes: marketRecipes,
+          noMore: true // 市场精选不分页
+        });
+      } else {
+        // 如果没有市场精选，加载热门菜谱
+        await this.loadRecipes();
+      }
     } catch (error) {
       console.error('加载数据失败:', error);
+      // 降级加载普通菜谱
+      await this.loadRecipes();
     } finally {
       this.setData({ loading: false });
     }
   },
 
-  // 加载市场菜谱（支持搜索和筛选）
+  // 加载菜谱列表
   async loadRecipes() {
-    const { page, limit, keyword, selectedCuisine } = this.data;
-    
+    const { page, limit, selectedCuisine } = this.data;
+
     try {
-      // 构建请求参数
-      const params = { page, limit };
-      if (keyword.trim()) {
-        params.keyword = keyword.trim();
-      }
-      if (selectedCuisine !== '全部') {
-        params.cuisine = selectedCuisine;
-      }
+      const cuisine = selectedCuisine === '全部' ? 'all' : selectedCuisine;
+      const res = await getRecipesByCuisine(cuisine, page, limit);
+      const recipes = res.data || [];
 
-      const res = await app.request({
-        url: '/recipes/market',
-        data: params
+      this.setData({
+        recipes: page === 0 ? recipes : [...this.data.recipes, ...recipes],
+        noMore: recipes.length < limit
       });
-
-      if (res.success) {
-        const recipes = page === 1 ? res.data.recipes : [...this.data.recipes, ...res.data.recipes];
-        
-        // 更新菜系列表（从接口获取）
-        const availableCuisines = res.data.availableCuisines || [];
-        const cuisines = ['全部', ...availableCuisines];
-        
-        this.setData({
-          recipes,
-          cuisines,
-          noMore: res.data.pagination.page >= res.data.pagination.pages
-        });
-      }
     } catch (error) {
-      console.error('加载市场菜谱失败:', error);
+      console.error('加载菜谱失败:', error);
+      showError('加载失败');
     }
   },
 
@@ -115,8 +114,9 @@ Page({
 
   // 确认搜索
   onSearchConfirm() {
-    this.setData({ page: 1, noMore: false, searchFocus: false }, () => {
-      this.loadRecipes();
+    // 跳转到搜索页面
+    wx.navigateTo({
+      url: `/pages/search/search?keyword=${encodeURIComponent(this.data.keyword)}`
     });
   },
 
@@ -132,17 +132,15 @@ Page({
 
   // 清除搜索
   clearSearch() {
-    this.setData({ keyword: '', page: 1, noMore: false }, () => {
-      this.loadRecipes();
-    });
+    this.setData({ keyword: '' });
   },
 
   // 选择菜系
   selectCuisine(e) {
-    const cuisine = e.currentTarget.dataset.cuisine;
-    this.setData({ 
+    const { cuisine } = e.currentTarget.dataset;
+    this.setData({
       selectedCuisine: cuisine,
-      page: 1,
+      page: 0,
       noMore: false
     }, () => {
       this.loadRecipes();
@@ -152,32 +150,31 @@ Page({
   // 收藏菜谱
   async addFavorite(e) {
     e.stopPropagation();
-    const item = e.currentTarget.dataset.item;
-    
-    try {
-      const res = await app.request({
-        url: '/recipes/favorite',
-        method: 'POST',
-        data: { recipeId: item._id || item.id }
-      });
+    const { item } = e.currentTarget.dataset;
+    const id = item._id || item.id;
 
-      if (res.success) {
-        app.showSuccess('收藏成功');
-        // 从市场列表中移除
-        const recipes = this.data.recipes.filter(r => (r._id || r.id) !== (item._id || item.id));
-        this.setData({ recipes });
-      }
+    try {
+      showLoading('处理中...');
+      await toggleFavorite(id, true);
+      hideLoading();
+
+      showSuccess('收藏成功');
+
+      // 标记收藏列表需要刷新
+      getApp().markFavoritesNeedRefresh();
     } catch (error) {
-      app.showError('收藏失败');
+      hideLoading();
+      showError('收藏失败');
+      console.error('收藏失败:', error);
     }
   },
 
   // 跳转到详情
   goToDetail(e) {
-    const id = e.currentTarget.dataset.id;
+    const { id } = e.currentTarget.dataset;
     if (!id) {
       console.error('菜谱ID为空', e.currentTarget.dataset);
-      app.showError('菜谱信息有误');
+      showError('菜谱信息有误');
       return;
     }
     wx.navigateTo({

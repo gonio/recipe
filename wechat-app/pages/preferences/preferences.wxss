@@ -1,0 +1,115 @@
+/* 偏好设置页面样式 */
+
+.container {
+  min-height: 100vh;
+  background: #F5F9FF;
+  padding: 32rpx;
+}
+
+/* 头部说明 */
+.header {
+  margin-bottom: 40rpx;
+}
+
+.header-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 12rpx;
+}
+
+.header-desc {
+  font-size: 28rpx;
+  color: #888888;
+}
+
+/* 菜系列表 */
+.cuisines-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  margin-bottom: 48rpx;
+}
+
+.cuisine-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 24rpx 32rpx;
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  border: 2rpx solid transparent;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.cuisine-item.selected {
+  background: linear-gradient(135deg, #42A5F5 0%, #64B5F6 100%);
+  border-color: #42A5F5;
+}
+
+.cuisine-name {
+  font-size: 30rpx;
+  color: #333333;
+}
+
+.cuisine-item.selected .cuisine-name {
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.check-icon {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+.check-icon image {
+  width: 100%;
+  height: 100%;
+}
+
+/* 保存区域 */
+.save-section {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #FFFFFF;
+  padding: 24rpx 32rpx 48rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.save-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #E0E0E0;
+  padding: 28rpx 0;
+  border-radius: 44rpx;
+  margin-bottom: 16rpx;
+  transition: all 0.3s ease;
+}
+
+.save-btn.active {
+  background: linear-gradient(135deg, #42A5F5 0%, #64B5F6 100%);
+  box-shadow: 0 4rpx 16rpx rgba(66, 165, 245, 0.3);
+}
+
+.save-btn text {
+  font-size: 32rpx;
+  color: #999999;
+  font-weight: 600;
+}
+
+.save-btn.active text {
+  color: #FFFFFF;
+}
+
+.save-tip {
+  display: block;
+  text-align: center;
+  font-size: 24rpx;
+  color: #888888;
+}
