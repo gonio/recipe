@@ -1,5 +1,113 @@
 /* 市场页面样式 */
 
+/* 搜索栏 */
+.search-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+  gap: 16rpx;
+}
+
+.search-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--bg-light);
+  border-radius: 36rpx;
+  padding: 16rpx 24rpx;
+  transition: all 0.3s ease;
+}
+
+.search-bar.focus .search-input-wrapper {
+  background: #fff;
+  box-shadow: 0 0 0 2rpx var(--primary-color);
+}
+
+.search-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 16rpx;
+  opacity: 0.5;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: var(--text-primary);
+}
+
+.search-input::placeholder {
+  color: var(--text-light);
+}
+
+.clear-btn {
+  padding: 8rpx;
+  margin-left: 8rpx;
+}
+
+.clear-btn image {
+  width: 32rpx;
+  height: 32rpx;
+  opacity: 0.4;
+}
+
+.search-btn {
+  font-size: 28rpx;
+  color: var(--primary-color);
+  font-weight: 500;
+  padding: 16rpx 20rpx;
+}
+
+/* 菜系筛选 */
+.cuisine-filter {
+  margin-bottom: 24rpx;
+  white-space: nowrap;
+}
+
+.cuisine-list {
+  display: inline-flex;
+  gap: 16rpx;
+  padding: 4rpx 0;
+}
+
+.cuisine-tag {
+  display: inline-block;
+  padding: 12rpx 28rpx;
+  background: var(--bg-light);
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+}
+
+.cuisine-tag.active {
+  background: var(--primary-color);
+  color: #fff;
+  font-weight: 500;
+}
+
+.cuisine-tag:active {
+  transform: scale(0.95);
+}
+
+/* 筛选结果提示 */
+.filter-result {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.filter-result .result-count {
+  font-size: 24rpx;
+  color: var(--text-light);
+  font-weight: normal;
+}
+
+/* 页面标题 */
 .page-header {
   margin-bottom: 30rpx;
 }
@@ -178,4 +286,27 @@
   padding: 40rpx;
   color: var(--text-light);
   font-size: 26rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 40rpx;
+}
+
+.empty-icon {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 40rpx;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: var(--text-light);
+  text-align: center;
+  line-height: 1.6;
 }

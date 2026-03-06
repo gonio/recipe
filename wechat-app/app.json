@@ -5,8 +5,9 @@
     "pages/recommend/recommend",
     "pages/profile/profile",
     "pages/recipe-detail/recipe-detail",
-    "pages/preferences/preferences",
-    "pages/search/search"
+    "pages/search/search",
+    "pages/add-recipe/add-recipe",
+    "pages/web-view/web-view"
   ],
   "window": {
     "backgroundTextStyle": "dark",

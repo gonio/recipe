@@ -70,10 +70,10 @@ Page({
       });
 
       if (res.success) {
-        const favoriteIds = res.data.recipes.map(r => r._id);
+        const favoriteIds = res.data.recipes.map(r => r._id || r.id);
         const updatedRecipes = recipes.map(recipe => ({
           ...recipe,
-          isFavorite: favoriteIds.includes(recipe._id)
+          isFavorite: favoriteIds.includes(recipe._id || recipe.id)
         }));
         this.setData({ recipes: updatedRecipes });
       }

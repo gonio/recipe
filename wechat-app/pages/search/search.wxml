@@ -11,7 +11,7 @@
              bindinput="onInput"
              bindconfirm="onSearch"/>
       <view class="clear-btn" wx:if="{{keyword}}" bindtap="clearSearch">
-        <image src="/images/close-circle.png" mode="aspectFit"/>
+        <image src="/images/close.png" mode="aspectFit"/>
       </view>
     </view>
     <text class="cancel-btn" bindtap="goBack">取消</text>
@@ -61,7 +61,7 @@
             wx:for="{{results}}" 
             wx:key="_id"
             bindtap="goToDetail"
-            data-id="{{item._id}}">
+            data-id="{{item._id || item.id}}">
         <image class="result-image {{!item.imageUrl ? 'placeholder' : ''}}" 
                src="{{item.imageUrl || '/images/default-food.png'}}" 
                mode="aspectFill"/>
@@ -71,8 +71,7 @@
             <text wx:else>{{item.name}}</text>
           </view>
           <view class="result-meta">
-            <text class="cuisine-tag">{{item.cuisine}}</text>
-            <text class="favorite-count">{{item.favoriteCount}}人收藏</text>
+            <text class="cuisine-tag">{{item.cuisine || '自定义'}}</text>
           </view>
         </view>
       </view>

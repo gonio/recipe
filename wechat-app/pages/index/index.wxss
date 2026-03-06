@@ -25,19 +25,29 @@
   color: var(--text-primary);
 }
 
-.new-badge {
-  background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
-  color: white;
-  padding: 12rpx 24rpx;
-  border-radius: 30rpx;
-  font-size: 24rpx;
-  font-weight: 500;
-  animation: pulse 2s infinite;
+.welcome-actions {
+  display: flex;
+  align-items: center;
 }
 
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+.add-recipe-btn {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 28rpx;
+  background: var(--primary-color);
+  border-radius: 36rpx;
+}
+
+.add-recipe-btn image {
+  width: 28rpx;
+  height: 28rpx;
+  margin-right: 8rpx;
+}
+
+.add-recipe-btn text {
+  font-size: 26rpx;
+  color: #fff;
+  font-weight: 500;
 }
 
 /* 搜索栏 */
@@ -52,9 +62,16 @@
   margin-left: 16rpx;
 }
 
-/* 菜系筛选 */
-.cuisine-filter {
+/* 操作栏 */
+.action-bar {
+  display: flex;
+  align-items: center;
   margin-bottom: 30rpx;
+  gap: 16rpx;
+}
+
+.cuisine-filter {
+  flex: 1;
 }
 
 .cuisine-scroll {
@@ -157,36 +174,10 @@
   align-items: center;
 }
 
-.cook-time::before {
-  content: '';
+.time-icon {
   width: 24rpx;
   height: 24rpx;
-  background: url('/images/time.png') no-repeat center;
-  background-size: contain;
   margin-right: 6rpx;
-}
-
-.favorite-btn {
-  position: absolute;
-  top: 20rpx;
-  right: 20rpx;
-  width: 60rpx;
-  height: 60rpx;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
-}
-
-.favorite-btn image {
-  width: 32rpx;
-  height: 32rpx;
-}
-
-.favorite-btn.active image {
-  filter: hue-rotate(320deg) saturate(200%);
 }
 
 /* 加载状态 */

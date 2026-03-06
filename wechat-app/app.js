@@ -3,11 +3,12 @@ App({
     userInfo: null,
     token: null,
     refreshToken: null,
-    apiBaseUrl: 'https://115.191.56.155/api', // 开发环境，生产环境需要改成真实域名
+    apiBaseUrl: 'https://122.152.229.4/api', // 请替换为你的域名
     preferredCuisines: [],
     isLoggingIn: false, // 登录中标记，防止并发登录
     requestQueue: [], // 请求队列，用于登录后重试
-    pendingRequests: new Map() // 请求去重缓存
+    pendingRequests: new Map(), // 请求去重缓存
+    needRefreshFavorites: false // 是否需要刷新收藏列表
   },
 
   onLaunch() {
@@ -155,7 +156,11 @@ App({
   getUserInfo() {
     return new Promise((resolve, reject) => {
       if (!this.globalData.token) {
-        reject(new Error('未登录'));
+        // 没有token，引导用户登录
+        this.showReLoginModal()
+          .then(() => this.getUserInfo())
+          .then(resolve)
+          .catch(reject);
         return;
       }
 
@@ -192,6 +197,12 @@ App({
             // token 可能过期了
             if (res.statusCode === 401) {
               this.clearAuthData();
+              // 引导用户重新登录
+              this.showReLoginModal()
+                .then(() => this.getUserInfo())
+                .then(data => callbacks.forEach(cb => cb.resolve(data)))
+                .catch(err => callbacks.forEach(cb => cb.reject(err)));
+              return;
             }
             const error = new Error(res.data.message || '获取用户信息失败');
             callbacks.forEach(cb => cb.reject(error));
@@ -226,11 +237,14 @@ App({
         header['Authorization'] = `Bearer ${this.globalData.token}`;
       }
 
+      // 构建完整 URL
+      const fullUrl = `${this.globalData.apiBaseUrl}${options.url}`;
+
       // GET 请求去重：相同 URL 和参数的 GET 请求合并
       let cacheKey = null;
       if (method === 'GET' && !isRetry) {
         const dataStr = options.data ? JSON.stringify(options.data) : '';
-        cacheKey = `${method}:${options.url}:${dataStr}`;
+        cacheKey = `${method}:${fullUrl}:${dataStr}`;
         
         if (this.globalData.pendingRequests.has(cacheKey)) {
           this.globalData.pendingRequests.get(cacheKey).push({ resolve, reject });
@@ -242,7 +256,7 @@ App({
 
       const doRequest = () => {
         wx.request({
-          url: `${this.globalData.apiBaseUrl}${options.url}`,
+          url: fullUrl,
           method: method,
           data: options.data,
           header,
@@ -252,7 +266,9 @@ App({
               const callbacks = this.globalData.pendingRequests.get(cacheKey) || [];
               this.globalData.pendingRequests.delete(cacheKey);
               
-              if (res.statusCode === 200 && res.data.success) {
+              // 支持 200-299 的成功状态码，success 可以是布尔值或字符串
+              const isSuccess = res.data.success === true || res.data.success === 'true' || res.data.success === 1;
+              if (res.statusCode >= 200 && res.statusCode < 300 && isSuccess) {
                 callbacks.forEach(cb => cb.resolve(res.data));
               } else if (res.statusCode === 401) {
                 // Token 过期，尝试刷新或重新登录
@@ -263,13 +279,28 @@ App({
                     const retryResult = await this.request(options, true);
                     callbacks.forEach(cb => cb.resolve(retryResult));
                   } catch (error) {
-                    callbacks.forEach(cb => cb.reject(error));
+                    // 自动恢复失败，引导用户手动登录
+                    this.showReLoginModal().then(() => {
+                      // 用户登录成功后，重试原请求
+                      this.request(options, true)
+                        .then(retryResult => callbacks.forEach(cb => cb.resolve(retryResult)))
+                        .catch(err => callbacks.forEach(cb => cb.reject(err)));
+                    }).catch(() => {
+                      const err = new Error('用户取消登录');
+                      callbacks.forEach(cb => cb.reject(err));
+                    });
                   }
                 } else {
-                  this.clearAuthData();
-                  wx.showToast({ title: '登录已过期，请重新登录', icon: 'none' });
-                  const error = new Error('未授权');
-                  callbacks.forEach(cb => cb.reject(error));
+                  // 重试后仍然 401，引导用户手动登录
+                  this.showReLoginModal().then(() => {
+                    this.request(options, true)
+                      .then(retryResult => callbacks.forEach(cb => cb.resolve(retryResult)))
+                      .catch(err => callbacks.forEach(cb => cb.reject(err)));
+                  }).catch(() => {
+                    this.clearAuthData();
+                    const err = new Error('用户取消登录');
+                    callbacks.forEach(cb => cb.reject(err));
+                  });
                 }
               } else {
                 const error = new Error(res.data.message || '请求失败');
@@ -279,21 +310,38 @@ App({
             }
 
             // 非 GET 请求或非去重请求的直接处理
-            if (res.statusCode === 200 && res.data.success) {
+            console.log('请求响应:', res.statusCode, res.data);
+            // 支持 200-299 的成功状态码，success 可以是布尔值或字符串
+            const isSuccess = res.data.success === true || res.data.success === 'true' || res.data.success === 1;
+            if (res.statusCode >= 200 && res.statusCode < 300 && isSuccess) {
               resolve(res.data);
             } else if (res.statusCode === 401) {
               // Token 过期，尝试刷新或重新登录
               if (!isRetry) {
-                await this.handleAuthError();
-                // 重试原请求
-                this.request(options, true)
-                  .then(resolve)
-                  .catch(reject);
+                try {
+                  await this.handleAuthError();
+                  // 重试原请求
+                  this.request(options, true)
+                    .then(resolve)
+                    .catch(reject);
+                } catch (error) {
+                  // 自动恢复失败，引导用户手动登录
+                  this.showReLoginModal().then(() => {
+                    this.request(options, true)
+                      .then(resolve)
+                      .catch(reject);
+                  }).catch(() => reject(new Error('用户取消登录')));
+                }
               } else {
-                // 重试后仍然 401，清除登录状态
-                this.clearAuthData();
-                wx.showToast({ title: '登录已过期，请重新登录', icon: 'none' });
-                reject(new Error('未授权'));
+                // 重试后仍然 401，引导用户手动登录
+                this.showReLoginModal().then(() => {
+                  this.request(options, true)
+                    .then(resolve)
+                    .catch(reject);
+                }).catch(() => {
+                  this.clearAuthData();
+                  reject(new Error('用户取消登录'));
+                });
               }
             } else {
               reject(new Error(res.data.message || '请求失败'));
@@ -318,6 +366,37 @@ App({
       }
 
       doRequest();
+    });
+  },
+
+  // 显示重新登录对话框
+  showReLoginModal() {
+    return new Promise((resolve, reject) => {
+      wx.showModal({
+        title: '登录已过期',
+        content: '您的登录状态已过期，需要重新登录才能继续操作',
+        confirmText: '去登录',
+        cancelText: '取消',
+        confirmColor: '#42A5F5',
+        success: (res) => {
+          if (res.confirm) {
+            // 用户点击登录，执行登录流程
+            this.login()
+              .then(() => {
+                wx.showToast({ title: '登录成功', icon: 'success' });
+                resolve();
+              })
+              .catch((err) => {
+                wx.showToast({ title: '登录失败，请重试', icon: 'none' });
+                reject(err);
+              });
+          } else {
+            // 用户取消
+            reject(new Error('用户取消登录'));
+          }
+        },
+        fail: reject
+      });
     });
   },
 

@@ -23,7 +23,14 @@ Page({
 
   onShow() {
     if (this.data.isLoggedIn) {
-      this.loadData();
+      // 检查是否需要刷新（从添加页面返回时）
+      if (app.globalData.needRefreshFavorites) {
+        app.globalData.needRefreshFavorites = false;
+        this.setData({ page: 1, noMore: false, recipes: [] });
+        this.loadData();
+      } else {
+        this.loadData();
+      }
     }
   },
 
@@ -150,32 +157,14 @@ Page({
     });
   },
 
-  // 取消收藏
-  async unfavorite(e) {
-    e.stopPropagation();
-    const recipeId = e.currentTarget.dataset.id;
-    
-    try {
-      const res = await app.request({
-        url: '/recipes/unfavorite',
-        method: 'POST',
-        data: { recipeId }
-      });
-
-      if (res.success) {
-        app.showSuccess('取消收藏');
-        // 从列表中移除
-        const recipes = this.data.recipes.filter(r => r._id !== recipeId);
-        this.setData({ recipes });
-      }
-    } catch (error) {
-      app.showError('操作失败');
-    }
-  },
-
   // 跳转到详情
   goToDetail(e) {
     const id = e.currentTarget.dataset.id;
+    if (!id) {
+      console.error('菜谱ID为空', e.currentTarget.dataset);
+      app.showError('菜谱信息有误');
+      return;
+    }
     wx.navigateTo({
       url: `/pages/recipe-detail/recipe-detail?id=${id}`
     });
@@ -192,6 +181,13 @@ Page({
   goToMarket() {
     wx.switchTab({
       url: '/pages/market/market'
+    });
+  },
+
+  // 跳转到添加菜谱
+  goToAddRecipe() {
+    wx.navigateTo({
+      url: '/pages/add-recipe/add-recipe'
     });
   }
 });

@@ -1,5 +1,45 @@
 /* 详情页面样式 */
 
+/* WebView 全屏容器 */
+.web-view-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: #fff;
+}
+
+.web-view-container web-view {
+  width: 100%;
+  height: 100%;
+}
+
+/* WebView 返回按钮 */
+.web-view-back {
+  position: fixed;
+  top: 20rpx;
+  left: 20rpx;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  padding: 16rpx 24rpx;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 40rpx;
+}
+
+.web-view-back image {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 8rpx;
+}
+
+.web-view-back text {
+  color: #fff;
+  font-size: 28rpx;
+}
+
 /* 顶部大图 */
 .hero-section {
   position: relative;
@@ -16,6 +56,149 @@
 
 .hero-image.placeholder {
   background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+}
+
+/* 视频类型菜谱样式 */
+.video-hero-section {
+  position: relative;
+  width: 100%;
+  height: 420rpx;
+  margin: -30rpx -30rpx 0;
+  width: calc(100% + 60rpx);
+  background: #000;
+}
+
+.video-player {
+  width: 100%;
+  height: 100%;
+}
+
+/* 平台视频封面 */
+.video-cover {
+  width: 100%;
+  height: 100%;
+}
+
+/* 播放遮罩 */
+.play-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.play-btn {
+  width: 120rpx;
+  height: 120rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20rpx;
+}
+
+.play-btn image {
+  width: 48rpx;
+  height: 48rpx;
+  margin-left: 8rpx;
+}
+
+.play-text {
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+/* 打开平台按钮 */
+.open-platform-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-color);
+  color: #fff;
+  padding: 28rpx;
+  border-radius: 44rpx;
+  margin-top: 30rpx;
+}
+
+.open-platform-btn.secondary {
+  background: var(--bg-light);
+  border: 2rpx solid var(--border-color);
+}
+
+.open-platform-btn.secondary text {
+  color: var(--text-primary);
+}
+
+.open-platform-btn image {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 12rpx;
+}
+
+.open-platform-btn text {
+  font-size: 30rpx;
+  font-weight: 500;
+}
+
+.video-info-section {
+  background: var(--bg-white);
+  border-radius: 30rpx 30rpx 0 0;
+  margin: -40rpx -30rpx 30rpx;
+  padding: 40rpx 30rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.note-section {
+  background: var(--bg-light);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin: 24rpx 0;
+}
+
+.note-label {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12rpx;
+}
+
+.note-content {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+/* 视频样式 */
+.hero-video {
+  width: 100%;
+  height: 100%;
+}
+
+.video-badge {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 8rpx 20rpx;
+  border-radius: 24rpx;
+  margin-left: 16rpx;
+  font-size: 24rpx;
+}
+
+.video-badge image {
+  width: 24rpx;
+  height: 24rpx;
+  margin-right: 8rpx;
 }
 
 .hero-overlay {
@@ -300,27 +483,9 @@
   font-size: 28rpx;
 }
 
-.bottom-action.share {
-  width: 120rpx;
-  flex-direction: column;
-  padding: 16rpx;
-  margin-right: 20rpx;
-}
-
-.bottom-action.share image {
-  width: 36rpx;
-  height: 36rpx;
-  margin-bottom: 4rpx;
-}
-
-.bottom-action.share text {
-  font-size: 22rpx;
-  color: var(--text-secondary);
-}
-
 .bottom-action.favorite {
+  flex: 1;
   background: var(--primary-light);
-  margin-right: 20rpx;
   padding: 24rpx 40rpx;
 }
 
@@ -336,8 +501,8 @@
 }
 
 .bottom-action.favorited {
+  flex: 1;
   background: #FFEBEE;
-  margin-right: 20rpx;
   padding: 24rpx 40rpx;
 }
 
@@ -350,12 +515,4 @@
 .bottom-action.favorited text {
   color: #E53935;
   font-weight: 500;
-}
-
-.bottom-action.start {
-  flex: 1;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  color: white;
-  font-weight: 600;
-  box-shadow: 0 8rpx 24rpx rgba(66, 165, 245, 0.3);
 }

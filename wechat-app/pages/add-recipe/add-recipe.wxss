@@ -1,0 +1,368 @@
+/* 添加菜谱页面样式 */
+
+/* 切换标签 */
+.add-mode-tabs {
+  display: flex;
+  background: var(--bg-white);
+  border-radius: 16rpx;
+  margin-bottom: 30rpx;
+  padding: 8rpx;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 30rpx;
+  color: var(--text-secondary);
+  border-radius: 12rpx;
+  transition: all 0.3s ease;
+}
+
+.tab.active {
+  background: var(--primary-color);
+  color: #fff;
+  font-weight: 500;
+}
+
+/* 表单区域 */
+.form-section {
+  padding-bottom: 40rpx;
+}
+
+.form-group {
+  background: var(--bg-white);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 24rpx;
+}
+
+.form-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 24rpx;
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 20rpx;
+  background: var(--primary-light);
+  border-radius: 28rpx;
+}
+
+.add-btn image {
+  width: 28rpx;
+  height: 28rpx;
+  margin-right: 8rpx;
+}
+
+.add-btn text {
+  font-size: 24rpx;
+  color: var(--primary-dark);
+  font-weight: 500;
+}
+
+/* 表单项 */
+.form-item {
+  margin-bottom: 24rpx;
+}
+
+.form-item:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  display: block;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  margin-bottom: 12rpx;
+}
+
+.label.required::after {
+  content: '*';
+  color: #EF5350;
+  margin-left: 8rpx;
+}
+
+.input {
+  width: 100%;
+  height: 88rpx;
+  background: var(--bg-light);
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  box-sizing: border-box;
+}
+
+.textarea {
+  width: 100%;
+  height: 160rpx;
+  background: var(--bg-light);
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  box-sizing: border-box;
+}
+
+.picker {
+  width: 100%;
+  height: 88rpx;
+  background: var(--bg-light);
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  line-height: 88rpx;
+  box-sizing: border-box;
+}
+
+.picker.placeholder {
+  color: var(--text-light);
+}
+
+/* 图片上传 */
+.image-uploader {
+  display: flex;
+}
+
+.upload-btn {
+  width: 200rpx;
+  height: 200rpx;
+  background: var(--bg-light);
+  border-radius: 12rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx dashed var(--border-color);
+}
+
+.upload-btn image {
+  width: 60rpx;
+  height: 60rpx;
+  margin-bottom: 12rpx;
+  opacity: 0.5;
+}
+
+.upload-btn text {
+  font-size: 24rpx;
+  color: var(--text-light);
+}
+
+.upload-btn.small {
+  width: 160rpx;
+  height: 160rpx;
+}
+
+.upload-btn.small image {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.uploaded-image {
+  position: relative;
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.uploaded-image image {
+  width: 100%;
+  height: 100%;
+}
+
+.uploaded-image.small {
+  width: 160rpx;
+  height: 160rpx;
+}
+
+.uploaded-image .delete-btn {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  width: 44rpx;
+  height: 44rpx;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uploaded-image .delete-btn image {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+/* 食材列表 */
+.ingredient-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.ingredient-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.ingredient-input {
+  flex: 2;
+  height: 80rpx;
+  background: var(--bg-light);
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+}
+
+.amount-input {
+  flex: 1;
+  height: 80rpx;
+  background: var(--bg-light);
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+}
+
+.ingredient-row .delete-btn {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ingredient-row .delete-btn image {
+  width: 32rpx;
+  height: 32rpx;
+  opacity: 0.4;
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 40rpx;
+  font-size: 26rpx;
+  color: var(--text-light);
+}
+
+/* 步骤卡片 */
+.step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.step-card {
+  background: var(--bg-light);
+  border-radius: 16rpx;
+  padding: 24rpx;
+}
+
+.step-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.step-number {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.step-header .delete-btn {
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-header .delete-btn image {
+  width: 32rpx;
+  height: 32rpx;
+  opacity: 0.4;
+}
+
+.step-textarea {
+  width: 100%;
+  height: 120rpx;
+  background: var(--bg-white);
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  margin-bottom: 16rpx;
+  box-sizing: border-box;
+}
+
+.step-image-uploader {
+  display: flex;
+}
+
+/* 提交按钮 */
+.submit-section {
+  padding: 40rpx 0;
+}
+
+.btn-submit {
+  width: 100%;
+  height: 96rpx;
+  background: var(--primary-color);
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 500;
+  border-radius: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+}
+
+.btn-submit::after {
+  border: none;
+}
+
+.btn-submit:active {
+  opacity: 0.9;
+}
+
+/* 视频表单 */
+.video-form {
+  background: var(--bg-white);
+  border-radius: 20rpx;
+  padding: 30rpx;
+}
+
+/* 视频提示 */
+.video-tips {
+  background: #E3F2FD;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-top: 30rpx;
+}
+
+.tips-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--primary-dark);
+  margin-bottom: 16rpx;
+}
+
+.tips-item {
+  display: block;
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}

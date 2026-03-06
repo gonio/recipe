@@ -1,0 +1,165 @@
+<view class="container">
+  <!-- 添加方式切换 -->
+  <view class="add-mode-tabs">
+    <view class="tab {{addMode === 'manual' ? 'active' : ''}}" bindtap="switchMode" data-mode="manual">
+      <text>手动添加</text>
+    </view>
+    <view class="tab {{addMode === 'video' ? 'active' : ''}}" bindtap="switchMode" data-mode="video">
+      <text>视频链接</text>
+    </view>
+  </view>
+
+  <!-- 手动添加表单 -->
+  <view class="form-section" wx:if="{{addMode === 'manual'}}">
+    <!-- 基本信息 -->
+    <view class="form-group">
+      <view class="form-title">基本信息</view>
+      
+      <view class="form-item">
+        <text class="label required">菜谱名称</text>
+        <input class="input" placeholder="例如：红烧肉" value="{{form.name}}" bindinput="onInput" data-field="name"/>
+      </view>
+
+      <view class="form-item">
+        <text class="label">菜系（可选）</text>
+        <picker mode="selector" range="{{cuisines}}" value="{{cuisineIndex}}" bindchange="onCuisineChange">
+          <view class="picker {{form.cuisine ? '' : 'placeholder'}}">
+            {{form.cuisine || '请选择菜系'}}
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="label">烹饪时间（分钟）</text>
+        <input class="input" type="number" placeholder="例如：30" value="{{form.cookTime}}" bindinput="onInput" data-field="cookTime"/>
+      </view>
+
+      <view class="form-item">
+        <text class="label">封面图片</text>
+        <view class="image-uploader">
+          <view class="upload-btn" bindtap="chooseImage" wx:if="{{!form.imageUrl}}">
+            <image src="/images/camera.png" mode="aspectFit"/>
+            <text>拍照或选图</text>
+          </view>
+          <view class="uploaded-image" wx:else>
+            <image src="{{form.imageUrl}}" mode="aspectFill"/>
+            <view class="delete-btn" bindtap="deleteImage">
+              <image src="/images/close.png" mode="aspectFit"/>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 食材清单 -->
+    <view class="form-group">
+      <view class="form-title">
+        <text>食材清单</text>
+        <view class="add-btn" bindtap="addIngredient">
+          <image src="/images/plus.png" mode="aspectFit"/>
+          <text>添加</text>
+        </view>
+      </view>
+      
+      <view class="ingredient-list">
+        <view class="ingredient-row" wx:for="{{form.ingredients}}" wx:key="index">
+          <input class="ingredient-input" placeholder="食材名称" value="{{item.name}}" bindinput="onIngredientChange" data-index="{{index}}" data-field="name"/>
+          <input class="amount-input" placeholder="用量" value="{{item.amount}}" bindinput="onIngredientChange" data-index="{{index}}" data-field="amount"/>
+          <view class="delete-btn" bindtap="deleteIngredient" data-index="{{index}}">
+            <image src="/images/close.png" mode="aspectFit"/>
+          </view>
+        </view>
+      </view>
+      
+      <view class="empty-tip" wx:if="{{form.ingredients.length === 0}}">
+        <text>点击右上角添加食材</text>
+      </view>
+    </view>
+
+    <!-- 烹饪步骤 -->
+    <view class="form-group">
+      <view class="form-title">
+        <text>烹饪步骤</text>
+        <view class="add-btn" bindtap="addStep">
+          <image src="/images/plus.png" mode="aspectFit"/>
+          <text>添加</text>
+        </view>
+      </view>
+      
+      <view class="step-list">
+        <view class="step-card" wx:for="{{form.steps}}" wx:key="order">
+          <view class="step-header">
+            <view class="step-number">步骤 {{item.order}}</view>
+            <view class="delete-btn" bindtap="deleteStep" data-index="{{index}}">
+              <image src="/images/close.png" mode="aspectFit"/>
+            </view>
+          </view>
+          <textarea class="step-textarea" placeholder="描述这一步的操作..." value="{{item.description}}" bindinput="onStepChange" data-index="{{index}}"/>
+          <view class="step-image-uploader">
+            <view class="upload-btn small" bindtap="chooseStepImage" data-index="{{index}}" wx:if="{{!item.imageUrl}}">
+              <image src="/images/camera.png" mode="aspectFit"/>
+              <text>拍照或选图</text>
+            </view>
+            <view class="uploaded-image small" wx:else>
+              <image src="{{item.imageUrl}}" mode="aspectFill"/>
+              <view class="delete-btn" bindtap="deleteStepImage" data-index="{{index}}">
+                <image src="/images/close.png" mode="aspectFit"/>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <view class="empty-tip" wx:if="{{form.steps.length === 0}}">
+        <text>点击右上角添加步骤</text>
+      </view>
+    </view>
+
+    <!-- 保存按钮 -->
+    <view class="submit-section">
+      <button class="btn-submit" bindtap="submitRecipe">保存菜谱</button>
+    </view>
+  </view>
+
+  <!-- 视频链接添加 -->
+  <view class="form-section" wx:if="{{addMode === 'video'}}">
+    <view class="video-form">
+      <view class="form-item">
+        <text class="label required">视频链接</text>
+        <textarea class="textarea" placeholder="粘贴菜谱视频链接，支持抖音、快手、B站等平台..." value="{{videoForm.url}}" bindinput="onVideoUrlInput"/>
+      </view>
+
+      <view class="form-item">
+        <text class="label required">菜谱名称</text>
+        <input class="input" placeholder="例如：红烧肉" value="{{videoForm.name}}" bindinput="onVideoNameInput"/>
+      </view>
+
+      <view class="form-item">
+        <text class="label">菜系（可选）</text>
+        <picker mode="selector" range="{{cuisines}}" value="{{videoCuisineIndex}}" bindchange="onVideoCuisineChange">
+          <view class="picker {{videoForm.cuisine ? '' : 'placeholder'}}">
+            {{videoForm.cuisine || '请选择菜系'}}
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item">
+        <text class="label">备注（可选）</text>
+        <input class="input" placeholder="添加一些备注信息..." value="{{videoForm.note}}" bindinput="onVideoNoteInput"/>
+      </view>
+
+      <!-- 提示信息 -->
+      <view class="video-tips">
+        <text class="tips-title">小贴士</text>
+        <text class="tips-item">• 支持抖音、快手、B站等平台视频链接</text>
+        <text class="tips-item">• 保存后可在详情页直接播放视频</text>
+        <text class="tips-item">• 请确保视频链接可以正常访问</text>
+      </view>
+    </view>
+
+    <!-- 保存按钮 -->
+    <view class="submit-section">
+      <button class="btn-submit" bindtap="submitVideoRecipe">添加视频菜谱</button>
+    </view>
+  </view>
+</view>
