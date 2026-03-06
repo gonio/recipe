@@ -1,84 +1,104 @@
+<!-- 首页 - 菜谱浏览 -->
 <view class="container">
   <!-- 顶部欢迎区 -->
-  <view class="welcome-section">
-    <view class="welcome-text">
+  <view class="header">
+    <view class="header-left">
       <text class="greeting">{{greeting}}</text>
-      <text class="username">{{userInfo.nickname || '美食家'}}</text>
+      <text class="subtitle">今天想吃点什么？</text>
     </view>
-    <view class="welcome-actions">
-      <view class="add-recipe-btn" bindtap="goToAddRecipe">
-        <image src="/images/plus.png" mode="aspectFit"/>
-        <text>添加</text>
-      </view>
+    <view class="header-right" bindtap="goToMarket">
+      <image src="/images/market.png" mode="aspectFit" class="market-icon" />
+      <text class="market-text">Market</text>
     </view>
   </view>
 
   <!-- 搜索栏 -->
-  <view class="search-bar" bindtap="goToSearch">
-    <image src="/images/search.png" mode="aspectFit" class="search-icon"/>
-    <text class="search-placeholder">搜索菜谱、食材...</text>
+  <search-bar
+    placeholder="搜索菜谱名称..."
+    value="{{searchKeyword}}"
+    bind:input="onSearchInput"
+    bind:search="onSearch"
+    bind:clear="onSearchClear"
+  />
+
+  <!-- 筛选栏 -->
+  <view class="filter-bar">
+    <scroll-view scroll-x class="cuisine-scroll" enhanced show-scrollbar="{{false}}">
+      <view class="cuisine-list">
+        <view
+          class="cuisine-tag {{selectedCuisine === 'all' ? 'active' : ''}}"
+          bindtap="onSelectCuisine"
+          data-cuisine="all"
+        >
+          <text>全部</text>
+        </view>
+        <view
+          class="cuisine-tag {{selectedCuisine === item ? 'active' : ''}}"
+          wx:for="{{['川菜', '粤菜', '湘菜', '鲁菜', '苏菜', '浙菜', '闽菜', '徽菜']}}"
+          wx:key="*this"
+          bindtap="onSelectCuisine"
+          data-cuisine="{{item}}"
+        >
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </scroll-view>
+    <view class="filter-btn" bindtap="onShowFilter">
+      <image src="/images/filter.png" mode="aspectFit" class="filter-icon" />
+    </view>
   </view>
 
-  <!-- 操作栏 -->
-  <view class="action-bar">
-    <view class="cuisine-filter">
-      <scroll-view scroll-x class="cuisine-scroll">
-        <view class="cuisine-list">
-          <view class="cuisine-item {{selectedCuisine === '' ? 'active' : ''}}" 
-                bindtap="selectCuisine" data-cuisine="">
-            <text>全部</text>
-          </view>
-          <view class="cuisine-item {{selectedCuisine === item ? 'active' : ''}}" 
-                wx:for="{{cuisines}}" 
-                wx:key="*this"
-                bindtap="selectCuisine" 
-                data-cuisine="{{item}}">
-            <text>{{item}}</text>
-          </view>
-        </view>
-      </scroll-view>
+  <!-- 骨架屏 -->
+  <loading-skeleton wx:if="{{showSkeleton}}" type="list" count="3" />
+
+  <!-- 错误状态 -->
+  <view class="error-state" wx:elif="{{error}}">
+    <image src="/images/error.png" mode="aspectFit" class="error-icon" />
+    <text class="error-text">{{error}}</text>
+    <view class="retry-btn" bindtap="onRetry">
+      <text>重新加载</text>
     </view>
   </view>
 
   <!-- 菜谱列表 -->
-  <view class="section-title">我的收藏</view>
-  
-  <view class="recipe-list" wx:if="{{recipes.length > 0}}">
-    <view class="recipe-card" 
-          wx:for="{{recipes}}" 
-          wx:key="_id"
-          bindtap="goToDetail"
-          data-id="{{item._id || item.id}}">
-      <image class="recipe-image {{!item.imageUrl ? 'no-image' : ''}}" 
-             src="{{item.imageUrl || '/images/default-food.png'}}" 
-             mode="aspectFill"/>
-      <view class="recipe-info">
-        <text class="recipe-name">{{item.name}}</text>
-        <view class="recipe-meta">
-          <text class="cuisine-tag">{{item.cuisine || '自定义'}}</text>
-          <view class="cook-time" wx:if="{{item.cookTime}}">
-            <image src="/images/time.png" mode="aspectFit" class="time-icon"/>
-            <text>{{item.cookTime}}分钟</text>
-          </view>
-        </view>
-      </view>
-    </view>
+  <view class="recipe-list" wx:elif="{{recipes.length > 0}}">
+    <recipe-card
+      wx:for="{{recipes}}"
+      wx:key="_id"
+      recipe="{{item}}"
+      isFavorited="{{false}}"
+      bind:tapCard="onRecipeTap"
+      bind:toggleFavorite="onToggleFavorite"
+    />
   </view>
 
   <!-- 空状态 -->
-  <view class="empty-state" wx:elif="{{!loading}}">
-    <image src="/images/empty-favorites.png" mode="aspectFit" class="empty-icon"/>
-    <text class="empty-text">还没有收藏任何菜谱\n去市场发现美味吧！</text>
-    <view class="btn btn-primary mt-20" bindtap="goToMarket">
-      <text>去发现</text>
+  <view class="empty-state" wx:else>
+    <image src="/images/empty-recipes.png" mode="aspectFit" class="empty-icon" />
+    <text class="empty-title">还没有菜谱</text>
+    <text class="empty-desc">去 Market 发现更多美味！</text>
+    <view class="explore-btn" bindtap="goToMarket">
+      <text>去探索</text>
     </view>
   </view>
 
   <!-- 加载更多 -->
-  <view class="loading-more" wx:if="{{loadingMore}}">
-    <text>加载中...</text>
-  </view>
-  <view class="no-more" wx:if="{{noMore && recipes.length > 0}}">
-    <text>没有更多菜谱了</text>
+  <view class="loading-footer" wx:if="{{!showSkeleton && recipes.length > 0}}">
+    <view class="loading-more" wx:if="{{loadingMore}}">
+      <view class="loading-spinner"></view>
+      <text>加载中...</text>
+    </view>
+    <view class="no-more" wx:elif="{{noMore}}">
+      <text>—— 已经到底了 ——</text>
+    </view>
   </view>
 </view>
+
+<!-- 筛选弹窗 -->
+<filter-modal
+  show="{{showFilterModal}}"
+  selectedCuisine="{{selectedCuisine}}"
+  bind:confirm="onSelectCuisine"
+  bind:reset="onResetFilter"
+  bind:close="onCloseFilter"
+/>

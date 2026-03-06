@@ -1,42 +1,50 @@
+/**
+ * 首页 - 菜谱浏览主页面
+ * 使用 CloudBase SDK 获取菜谱数据
+ */
+
+const { getRecipesByCuisine, searchRecipes, PAGE_SIZE } = require('../../utils/recipe-api');
+const { showLoading, hideLoading, handleCloudError } = require('../../utils/ui-helpers');
+
 const app = getApp();
 
 Page({
   data: {
-    userInfo: {},
+    // 用户相关
     greeting: '',
-    newRecipesCount: 0,
-    cuisines: [],
-    selectedCuisine: '',
+    userInfo: null,
+
+    // 搜索和筛选
+    searchKeyword: '',
+    selectedCuisine: 'all',
+    showFilterModal: false,
+
+    // 菜谱列表
     recipes: [],
-    page: 1,
-    limit: 20,
+    page: 0,
     loading: false,
     loadingMore: false,
     noMore: false,
-    isLoggedIn: false
+    showSkeleton: true,
+
+    // 错误状态
+    error: null
   },
 
   onLoad() {
     this.setGreeting();
-    this.checkLogin();
+    this.loadRecipes(true);
   },
 
   onShow() {
-    if (this.data.isLoggedIn) {
-      // 检查是否需要刷新（从添加页面返回时）
-      if (app.globalData.needRefreshFavorites) {
-        app.globalData.needRefreshFavorites = false;
-        this.setData({ page: 1, noMore: false, recipes: [] });
-        this.loadData();
-      } else {
-        this.loadData();
-      }
+    // 页面显示时刷新数据（可能从详情页返回）
+    if (this.data.recipes.length === 0) {
+      this.loadRecipes(true);
     }
   },
 
   onPullDownRefresh() {
-    this.setData({ page: 1, noMore: false });
-    this.loadData().finally(() => {
+    this.loadRecipes(true).finally(() => {
       wx.stopPullDownRefresh();
     });
   },
@@ -47,7 +55,9 @@ Page({
     }
   },
 
-  // 设置问候语
+  /**
+   * 设置问候语
+   */
   setGreeting() {
     const hour = new Date().getHours();
     let greeting = '你好';
@@ -57,137 +67,225 @@ Page({
     this.setData({ greeting });
   },
 
-  // 检查登录状态
-  checkLogin() {
-    const token = app.globalData.token;
-    if (!token) {
-      this.doLogin();
-    } else {
-      this.setData({ isLoggedIn: true });
-      this.loadData();
-    }
-  },
+  /**
+   * 加载菜谱列表
+   * @param {boolean} refresh - 是否刷新（重置页码）
+   */
+  async loadRecipes(refresh = false) {
+    if (this.data.loading) return;
 
-  // 执行登录
-  doLogin() {
-    app.login()
-      .then(() => {
-        this.setData({ isLoggedIn: true });
-        this.loadData();
-      })
-      .catch(err => {
-        console.error('登录失败:', err);
-        app.showError('登录失败，请重试');
-      });
-  },
+    const page = refresh ? 0 : this.data.page;
+    const { selectedCuisine } = this.data;
 
-  // 加载数据
-  async loadData() {
-    this.setData({ loading: true });
-    
+    this.setData({
+      loading: true,
+      error: null,
+      showSkeleton: refresh && this.data.recipes.length === 0
+    });
+
     try {
-      // 获取用户信息（使用 getUserInfo 以利用缓存）
-      const userInfo = await app.getUserInfo();
+      const res = await getRecipesByCuisine(selectedCuisine, page, PAGE_SIZE);
+      const recipes = res.data || [];
+
       this.setData({
-        userInfo: userInfo,
-        newRecipesCount: userInfo.newRecipesCount || 0,
-        cuisines: userInfo.preferredCuisines || []
+        recipes: refresh ? recipes : [...this.data.recipes, ...recipes],
+        page: page,
+        noMore: recipes.length < PAGE_SIZE,
+        loading: false,
+        showSkeleton: false
       });
 
-      // 加载收藏菜谱
-      await this.loadRecipes();
-    } catch (error) {
-      console.error('加载数据失败:', error);
-      if (error.message === '未授权' || error.message === '未登录') {
-        this.doLogin();
-      }
-    } finally {
-      this.setData({ loading: false });
-    }
-  },
-
-  // 加载菜谱列表
-  async loadRecipes() {
-    const { selectedCuisine, page, limit } = this.data;
-    
-    try {
-      const res = await app.request({
-        url: '/recipes/favorites',
-        data: {
-          cuisine: selectedCuisine,
-          page,
-          limit
-        }
-      });
-
-      if (res.success) {
-        const recipes = page === 1 ? res.data.recipes : [...this.data.recipes, ...res.data.recipes];
-        this.setData({
-          recipes,
-          noMore: res.data.pagination.page >= res.data.pagination.pages
-        });
-      }
     } catch (error) {
       console.error('加载菜谱失败:', error);
+      handleCloudError(error);
+      this.setData({
+        error: error.message || '加载失败',
+        loading: false,
+        showSkeleton: false
+      });
     }
   },
 
-  // 加载更多
-  loadMore() {
+  /**
+   * 加载更多
+   */
+  async loadMore() {
+    if (this.data.loadingMore || this.data.noMore) return;
+
     this.setData({
-      page: this.data.page + 1,
-      loadingMore: true
-    }, () => {
-      this.loadRecipes().finally(() => {
-        this.setData({ loadingMore: false });
+      loadingMore: true,
+      page: this.data.page + 1
+    });
+
+    try {
+      const { selectedCuisine, page } = this.data;
+      const res = await getRecipesByCuisine(selectedCuisine, page, PAGE_SIZE);
+      const recipes = res.data || [];
+
+      this.setData({
+        recipes: [...this.data.recipes, ...recipes],
+        noMore: recipes.length < PAGE_SIZE,
+        loadingMore: false
       });
-    });
+
+    } catch (error) {
+      console.error('加载更多失败:', error);
+      this.setData({
+        loadingMore: false,
+        page: this.data.page - 1 // 回退页码
+      });
+      handleCloudError(error);
+    }
   },
 
-  // 选择菜系
-  selectCuisine(e) {
-    const cuisine = e.currentTarget.dataset.cuisine;
+  /**
+   * 搜索输入
+   */
+  onSearchInput(e) {
     this.setData({
-      selectedCuisine: cuisine,
-      page: 1,
-      noMore: false,
-      recipes: []
-    }, () => {
-      this.loadRecipes();
+      searchKeyword: e.detail.value
     });
   },
 
-  // 跳转到详情
-  goToDetail(e) {
-    const id = e.currentTarget.dataset.id;
-    if (!id) {
-      console.error('菜谱ID为空', e.currentTarget.dataset);
-      app.showError('菜谱信息有误');
+  /**
+   * 执行搜索
+   */
+  async onSearch(e) {
+    const keyword = e.detail.value || this.data.searchKeyword;
+
+    if (!keyword.trim()) {
+      // 如果搜索词为空，恢复普通列表
+      this.loadRecipes(true);
       return;
     }
-    wx.navigateTo({
-      url: `/pages/recipe-detail/recipe-detail?id=${id}`
+
+    this.setData({
+      loading: true,
+      showSkeleton: true
+    });
+
+    try {
+      const res = await searchRecipes(keyword, 20);
+      const recipes = res.data || [];
+
+      this.setData({
+        recipes,
+        page: 0,
+        noMore: true, // 搜索结果不分页
+        loading: false,
+        showSkeleton: false
+      });
+
+      if (recipes.length === 0) {
+        wx.showToast({
+          title: '未找到相关菜谱',
+          icon: 'none'
+        });
+      }
+
+    } catch (error) {
+      console.error('搜索失败:', error);
+      handleCloudError(error);
+      this.setData({
+        loading: false,
+        showSkeleton: false
+      });
+    }
+  },
+
+  /**
+   * 显示筛选弹窗
+   */
+  onShowFilter() {
+    this.setData({
+      showFilterModal: true
     });
   },
 
-  // 跳转到搜索
+  /**
+   * 关闭筛选弹窗
+   */
+  onCloseFilter() {
+    this.setData({
+      showFilterModal: false
+    });
+  },
+
+  /**
+   * 选择菜系
+   */
+  onSelectCuisine(e) {
+    const { cuisine } = e.detail;
+    this.setData({
+      selectedCuisine: cuisine,
+      showFilterModal: false,
+      page: 0,
+      noMore: false
+    }, () => {
+      this.loadRecipes(true);
+    });
+  },
+
+  /**
+   * 重置筛选
+   */
+  onResetFilter() {
+    this.setData({
+      selectedCuisine: 'all',
+      showFilterModal: false
+    }, () => {
+      this.loadRecipes(true);
+    });
+  },
+
+  /**
+   * 跳转到搜索页面
+   */
   goToSearch() {
     wx.navigateTo({
       url: '/pages/search/search'
     });
   },
 
-  // 跳转到市场
+  /**
+   * 跳转到市场页面
+   */
   goToMarket() {
     wx.switchTab({
       url: '/pages/market/market'
     });
   },
 
-  // 跳转到添加菜谱
-  goToAddRecipe() {
-    wx.navigateTo({
-      url: '/pages/add-recipe/add-recipe'
+  /**
+   * 处理卡片点击
+   */
+  onRecipeTap(e) {
+    const { recipeId } = e.detail;
+    if (recipeId) {
+      wx.navigateTo({
+        url: `/pages/recipe-detail/recipe-detail?id=${recipeId}`
+      });
+    }
+  },
+
+  /**
+   * 处理收藏切换
+   */
+  async onToggleFavorite(e) {
+    const { recipeId, isFavorited } = e.detail;
+
+    // 这里需要调用收藏 API
+    // 暂时只显示提示
+    wx.showToast({
+      title: isFavorited ? '已添加收藏' : '已取消收藏',
+      icon: 'success'
     });
+  },
+
+  /**
+   * 重试加载
+   */
+  onRetry() {
+    this.loadRecipes(true);
   }
 });

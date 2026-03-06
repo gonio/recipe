@@ -1,0 +1,144 @@
+/* 筛选弹窗组件样式 - 浅蓝色主题 */
+
+.filter-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.filter-modal.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* 遮罩层 */
+.mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  transition: opacity 0.3s ease;
+}
+
+/* 弹窗内容 */
+.modal-content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ffffff;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 32rpx;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-modal.show .modal-content {
+  transform: translateY(0);
+}
+
+/* 头部 */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32rpx;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.close-btn {
+  padding: 16rpx;
+}
+
+.close-btn image {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+/* 菜系列表 */
+.cuisine-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  margin-bottom: 32rpx;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.cuisine-item {
+  padding: 20rpx 40rpx;
+  background: #f0f7ff;
+  border-radius: 36rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.2s ease;
+}
+
+.cuisine-item text {
+  font-size: 28rpx;
+  color: #666666;
+}
+
+.cuisine-item.active {
+  background: linear-gradient(135deg, #42A5F5 0%, #64B5F6 100%);
+  border-color: #42A5F5;
+}
+
+.cuisine-item.active text {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* 底部按钮 */
+.modal-footer {
+  display: flex;
+  gap: 24rpx;
+  padding-top: 24rpx;
+  border-top: 2rpx solid #f0f4f8;
+}
+
+.reset-btn,
+.confirm-btn {
+  flex: 1;
+  padding: 28rpx 0;
+  border-radius: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reset-btn {
+  background: #f0f7ff;
+}
+
+.reset-btn text {
+  font-size: 30rpx;
+  color: #666666;
+  font-weight: 500;
+}
+
+.confirm-btn {
+  background: linear-gradient(135deg, #42A5F5 0%, #64B5F6 100%);
+  box-shadow: 0 4rpx 16rpx rgba(66, 165, 245, 0.3);
+}
+
+.confirm-btn text {
+  font-size: 30rpx;
+  color: #ffffff;
+  font-weight: 600;
+}

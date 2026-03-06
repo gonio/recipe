@@ -1,0 +1,54 @@
+<!-- 菜谱卡片组件 -->
+<view class="recipe-card" bindtap="onTapCard" hover-class="card-hover">
+  <!-- 菜谱图片 -->
+  <view class="image-container">
+    <image
+      class="recipe-image"
+      src="{{recipe.imageUrl || '/images/default-recipe.png'}}"
+      mode="aspectFill"
+      lazy-load="{{true}}"
+    />
+    <!-- 热门标签 -->
+    <view class="heat-badge" wx:if="{{recipe.heatScore > 50}}">
+      <text class="heat-text">热门</text>
+    </view>
+    <!-- 收藏按钮 -->
+    <view class="favorite-btn" catchtap="onToggleFavorite" hover-class="btn-hover">
+      <image
+        class="favorite-icon"
+        src="{{isFavorited ? '/images/heart-filled.png' : '/images/heart-outline.png'}}"
+        mode="aspectFit"
+      />
+    </view>
+  </view>
+
+  <!-- 菜谱信息 -->
+  <view class="recipe-info">
+    <!-- 标题 -->
+    <text class="recipe-name">{{recipe.name}}</text>
+
+    <!-- 元信息行 -->
+    <view class="meta-row">
+      <text class="cuisine-tag">{{recipe.cuisine}}</text>
+      <view class="divider"></view>
+      <text class="cook-time">{{recipe.cookTime}}分钟</text>
+      <view class="divider"></view>
+      <text class="difficulty">{{difficultyText}}</text>
+    </view>
+
+    <!-- 底部信息 -->
+    <view class="bottom-row">
+      <view class="favorite-count">
+        <image class="small-icon" src="/images/heart-small.png" mode="aspectFit" />
+        <text class="count-text">{{recipe.favoriteCount || 0}}</text>
+      </view>
+      <!-- Market 类型标签 -->
+      <view class="market-tag new" wx:if="{{recipe.marketType === 'new'}}">
+        <text>新菜</text>
+      </view>
+      <view class="market-tag pick" wx:if="{{recipe.marketType === 'todays_pick'}}">
+        <text>今日精选</text>
+      </view>
+    </view>
+  </view>
+</view>

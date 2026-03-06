@@ -70,16 +70,16 @@
 
 ### Homepage Implementation (User Story 1)
 
-- [ ] T022 [US1] Redesign wechat-app/pages/index/index.wxss with light blue (#42A5F5) theme, card layout, rounded corners, soft shadows
-- [ ] T023 [US1] Update wechat-app/pages/index/index.wxml with recipe-card component usage and filter UI
-- [ ] T024 [US1] Refactor wechat-app/pages/index/index.js with CloudBase SDK integration, pagination, pull-to-refresh
-- [ ] T025 [US1] Add smooth scroll and image lazy loading to homepage for performance optimization
+- [X] T022 [US1] Redesign wechat-app/pages/index/index.wxss with light blue (#42A5F5) theme, card layout, rounded corners, soft shadows
+- [X] T023 [US1] Update wechat-app/pages/index/index.wxml with recipe-card component usage and filter UI
+- [X] T024 [US1] Refactor wechat-app/pages/index/index.js with CloudBase SDK integration, pagination, pull-to-refresh
+- [X] T025 [US1] Add smooth scroll and image lazy loading to homepage for performance optimization
 
 ### Recipe Detail Page (User Story 1)
 
-- [ ] T026 [US1] Redesign wechat-app/pages/recipe-detail/recipe-detail.wxss with beautiful typography and clear visual hierarchy
-- [ ] T027 [US1] Update wechat-app/pages/recipe-detail/recipe-detail.wxml with ingredient list and step-by-step instructions
-- [ ] T028 [US1] Refactor wechat-app/pages/recipe-detail/recipe-detail.js with CloudBase data fetching and view tracking
+- [X] T026 [US1] Redesign wechat-app/pages/recipe-detail/recipe-detail.wxss with beautiful typography and clear visual hierarchy
+- [X] T027 [US1] Update wechat-app/pages/recipe-detail/recipe-detail.wxml with ingredient list and step-by-step instructions
+- [X] T028 [US1] Refactor wechat-app/pages/recipe-detail/recipe-detail.js with CloudBase data fetching and view tracking
 
 ### Search Functionality (User Story 1)
 

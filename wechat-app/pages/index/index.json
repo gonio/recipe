@@ -1,5 +1,12 @@
 {
-  "usingComponents": {},
+  "navigationBarTitleText": "首页",
   "enablePullDownRefresh": true,
-  "backgroundColor": "#F5F9FF"
+  "backgroundTextStyle": "dark",
+  "backgroundColor": "#F5F9FF",
+  "usingComponents": {
+    "recipe-card": "/components/recipe-card/recipe-card",
+    "search-bar": "/components/search-bar/search-bar",
+    "filter-modal": "/components/filter-modal/filter-modal",
+    "loading-skeleton": "/components/loading-skeleton/loading-skeleton"
+  }
 }

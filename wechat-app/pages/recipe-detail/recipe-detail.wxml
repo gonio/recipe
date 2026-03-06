@@ -1,153 +1,141 @@
-<block wx:if="{{showWebView}}">
-  <!-- 全屏 WebView 播放 -->
-  <view class="web-view-container">
-    <web-view src="{{webViewUrl}}"></web-view>
-    <view class="web-view-back" bindtap="closeWebView">
-      <image src="/images/back.png" mode="aspectFit"/>
-      <text>返回</text>
+<!-- 菜谱详情页 -->
+<view class="container">
+  <!-- 骨架屏 -->
+  <loading-skeleton wx:if="{{isLoading}}" type="detail" />
+
+  <!-- 错误状态 -->
+  <view class="error-state" wx:elif="{{error}}">
+    <image src="/images/error.png" mode="aspectFit" class="error-icon" />
+    <text class="error-text">{{error}}</text>
+    <view class="retry-btn" bindtap="onRetry">
+      <text>重新加载</text>
     </view>
   </view>
-</block>
 
-<block wx:else>
-  <view class="container">
-    <!-- 视频类型菜谱 -->
-    <block wx:if="{{recipe.type === 'video'}}">
-      <!-- 视频播放区 -->
-      <view class="video-hero-section">
-        <!-- 平台视频（抖音、快手等）显示封面和跳转按钮 -->
-        <block wx:if="{{isPlatformVideo}}">
-          <image class="video-cover" 
-                 src="{{recipe.coverUrl || recipe.imageUrl || '/images/default-food.png'}}" 
-                 mode="aspectFill"/>
-          <view class="play-overlay" bindtap="openVideoLink">
-            <view class="play-btn">
-              <image src="/images/play.png" mode="aspectFit"/>
-            </view>
-            <text class="play-text">{{canOpenApp ? '点击打开' + platformName : '复制链接去' + platformName}}观看</text>
-          </view>
-        </block>
-        <!-- 普通视频链接直接使用 video 播放 -->
-        <block wx:else>
-          <video class="video-player" 
-                 src="{{recipe.videoUrl || recipe.sourceUrl}}" 
-                 poster="{{recipe.coverUrl || recipe.imageUrl}}"
-                 controls
-                 show-center-play-btn
-                 enable-progress-gesture
-                 object-fit="contain"></video>
-        </block>
-        <view class="back-btn" bindtap="goBack">
-          <image src="/images/back.png" mode="aspectFit"/>
-        </view>
+  <!-- 菜谱详情内容 -->
+  <block wx:elif="{{recipe}}">
+    <!-- 顶部图片 -->
+    <view class="hero-section">
+      <image
+        class="hero-image"
+        src="{{recipe.imageUrl || '/images/default-recipe.png'}}"
+        mode="aspectFill"
+        bindtap="previewImage"
+        lazy-load
+      />
+      <view class="image-overlay"></view>
+
+      <!-- 返回按钮 -->
+      <view class="back-btn" bindtap="goBack">
+        <image src="/images/arrow-left-white.png" mode="aspectFit" />
       </view>
 
-      <!-- 视频菜谱信息 -->
-      <view class="video-info-section">
+      <!-- 热门标签 -->
+      <view class="hero-badge" wx:if="{{recipe.heatScore > 50}}">
+        <text>热门菜谱</text>
+      </view>
+    </view>
+
+    <!-- 内容区域 -->
+    <view class="content-section">
+      <!-- 标题区 -->
+      <view class="title-section">
         <text class="recipe-name">{{recipe.name}}</text>
-        
-        <!-- 备注 -->
-        <view class="note-section" wx:if="{{recipe.note}}">
-          <text class="note-label">备注</text>
-          <text class="note-content">{{recipe.note}}</text>
-        </view>
-        
-        <!-- 播放按钮 -->
-        <view class="open-platform-btn" bindtap="openVideoLink" wx:if="{{isPlatformVideo && canOpenApp}}">
-          <image src="/images/play.png" mode="aspectFit"/>
-          <text>打开{{platformName}}观看</text>
-        </view>
-        
-        <!-- 复制链接按钮（不支持直接打开时） -->
-        <view class="open-platform-btn secondary" bindtap="openVideoLink" wx:if="{{isPlatformVideo && !canOpenApp}}">
-          <image src="/images/share.png" mode="aspectFit"/>
-          <text>复制链接去{{platformName}}观看</text>
-        </view>
-      </view>
-    </block>
 
-    <!-- 普通类型菜谱 -->
-    <block wx:else>
-      <!-- 菜谱图片 -->
-      <view class="hero-section">
-        <image class="hero-image {{!recipe.imageUrl ? 'placeholder' : ''}}" 
-               src="{{recipe.imageUrl || '/images/default-food.png'}}" 
-               mode="aspectFill"/>
-        <view class="hero-overlay">
-          <view class="cuisine-tag">{{recipe.cuisine || '自定义'}}</view>
-        </view>
-        <view class="back-btn" bindtap="goBack">
-          <image src="/images/back.png" mode="aspectFit"/>
-        </view>
-      </view>
-
-      <!-- 菜谱信息 -->
-      <view class="info-section">
-        <text class="recipe-name">{{recipe.name}}</text>
-        
-        <view class="recipe-meta">
+        <view class="meta-row">
           <view class="meta-item">
-            <image src="/images/time.png" mode="aspectFit"/>
-            <text>{{recipe.cookTime || '30'}}分钟</text>
+            <image src="/images/cuisine.png" mode="aspectFit" class="meta-icon" />
+            <text>{{recipe.cuisine}}</text>
+          </view>
+          <view class="meta-item">
+            <image src="/images/time.png" mode="aspectFit" class="meta-icon" />
+            <text>{{recipe.cookTimeText}}</text>
+          </view>
+          <view class="meta-item">
+            <image src="/images/difficulty.png" mode="aspectFit" class="meta-icon" />
+            <text>{{recipe.difficultyText}}</text>
           </view>
         </view>
 
         <!-- 标签 -->
-        <view class="tags-section" wx:if="{{recipe.tags && recipe.tags.length > 0}}">
-          <text class="tag" wx:for="{{recipe.tags}}" wx:key="*this">{{item}}</text>
+        <view class="tags-row" wx:if="{{recipe.tags && recipe.tags.length > 0}}">
+          <view class="tag" wx:for="{{recipe.tags}}" wx:key="*this">
+            <text>{{item}}</text>
+          </view>
         </view>
       </view>
 
-      <!-- 食材清单 -->
-      <view class="section ingredients-section">
+      <!-- 统计信息 -->
+      <view class="stats-section">
+        <view class="stat-item">
+          <text class="stat-value">{{recipe.favoriteCount || 0}}</text>
+          <text class="stat-label">收藏</text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <text class="stat-value">{{recipe.viewCount || 0}}</text>
+          <text class="stat-label">浏览</text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <text class="stat-value">{{recipe.heatScore ? Math.round(recipe.heatScore) : 0}}</text>
+          <text class="stat-label">热度</text>
+        </view>
+      </view>
+
+      <!-- 食材列表 -->
+      <view class="section" wx:if="{{recipe.ingredients && recipe.ingredients.length > 0}}">
         <view class="section-header">
-          <text class="section-title">食材清单</text>
-          <text class="section-count">{{recipe.ingredients.length || 0}}种食材</text>
+          <image src="/images/ingredients.png" mode="aspectFit" class="section-icon" />
+          <text class="section-title">食材准备</text>
         </view>
         <view class="ingredients-list">
-          <view class="ingredient-item" wx:for="{{recipe.ingredients}}" wx:key="name">
+          <view class="ingredient-item" wx:for="{{recipe.ingredients}}" wx:key="*this">
             <view class="ingredient-dot"></view>
-            <text class="ingredient-name">{{item.name}}</text>
-            <text class="ingredient-amount">{{item.amount}}</text>
+            <text class="ingredient-text">{{item}}</text>
           </view>
         </view>
       </view>
 
       <!-- 烹饪步骤 -->
-      <view class="section steps-section">
+      <view class="section" wx:if="{{recipe.steps && recipe.steps.length > 0}}">
         <view class="section-header">
+          <image src="/images/steps.png" mode="aspectFit" class="section-icon" />
           <text class="section-title">烹饪步骤</text>
-          <text class="section-count">共 {{recipe.steps.length || 0}} 步</text>
         </view>
         <view class="steps-list">
-          <view class="step-item" wx:for="{{recipe.steps}}" wx:key="order">
-            <view class="step-number">{{item.order}}</view>
+          <view class="step-item" wx:for="{{recipe.steps}}" wx:key="index">
+            <view class="step-number">
+              <text>{{index + 1}}</text>
+            </view>
             <view class="step-content">
-              <image class="step-image" 
-                     wx:if="{{item.imageUrl}}"
-                     src="{{item.imageUrl}}" 
-                     mode="aspectFill"/>
-              <text class="step-text">{{item.description}}</text>
+              <text class="step-text">{{item}}</text>
             </view>
           </view>
         </view>
       </view>
 
       <!-- 来源信息 -->
-      <view class="source-section" wx:if="{{recipe.source}}">
-        <text class="source-label">菜谱来源：{{recipe.source}}</text>
+      <view class="source-section" wx:if="{{recipe.sourceType === 'ai_curated' && recipe.aiSource}}">
+        <text class="source-label">AI 智能推荐</text>
+        <text class="source-info">由 {{recipe.aiSource.modelUsed === 'hunyuan' ? '混元' : 'DeepSeek'}} 模型生成</text>
       </view>
-    </block>
-
-    <!-- 底部间距 -->
-    <view class="bottom-spacer"></view>
-  </view>
-
-  <!-- 底部固定操作栏 -->
-  <view class="bottom-bar">
-    <view class="bottom-action {{isFavorite ? 'favorited' : 'favorite'}}" bindtap="toggleFavorite">
-      <image src="{{isFavorite ? '/images/heart-filled.png' : '/images/heart.png'}}" mode="aspectFit"/>
-      <text>{{isFavorite ? '已收藏' : '收藏'}}</text>
     </view>
+  </block>
+</view>
+
+<!-- 底部操作栏 -->
+<view class="bottom-bar" wx:if="{{recipe}}">
+  <view class="share-btn" bindtap="onShareAppMessage">
+    <image src="/images/share.png" mode="aspectFit" />
+    <text>分享</text>
   </view>
-</block>
+
+  <view class="favorite-btn {{isFavorited ? 'active' : ''}}" bindtap="toggleFavorite">
+    <image
+      src="{{isFavorited ? '/images/heart-filled-white.png' : '/images/heart-outline-white.png'}}"
+      mode="aspectFit"
+    />
+    <text>{{isFavorited ? '已收藏' : '收藏'}}</text>
+  </view>
+</view>

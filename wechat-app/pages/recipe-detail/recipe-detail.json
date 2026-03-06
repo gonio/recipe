@@ -1,5 +1,7 @@
 {
-  "usingComponents": {},
   "navigationStyle": "custom",
-  "backgroundColor": "#F5F9FF"
+  "backgroundColor": "#F5F9FF",
+  "usingComponents": {
+    "loading-skeleton": "/components/loading-skeleton/loading-skeleton"
+  }
 }

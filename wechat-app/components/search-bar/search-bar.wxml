@@ -1,0 +1,27 @@
+<!-- 搜索栏组件 -->
+<view class="search-bar-container">
+  <view class="search-input-wrapper">
+    <image class="search-icon" src="/images/search.png" mode="aspectFit" />
+    <input
+      class="search-input"
+      type="text"
+      placeholder="{{placeholder}}"
+      placeholder-class="placeholder"
+      value="{{value}}"
+      focus="{{focus}}"
+      confirm-type="search"
+      bindinput="onInput"
+      bindconfirm="onConfirm"
+      bindfocus="onFocus"
+      bindblur="onBlur"
+    />
+    <!-- 清除按钮 -->
+    <view class="clear-btn" wx:if="{{value.length > 0}}" bindtap="onClear">
+      <image class="clear-icon" src="/images/clear.png" mode="aspectFit" />
+    </view>
+  </view>
+  <!-- 搜索按钮 -->
+  <view class="search-btn" wx:if="{{showSearchButton && value.length > 0}}" bindtap="onSearch">
+    <text>搜索</text>
+  </view>
+</view>

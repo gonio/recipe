@@ -1,0 +1,28 @@
+<!-- 骨架屏组件 -->
+<view class="skeleton-container">
+  <!-- 列表模式 -->
+  <view class="skeleton-list" wx:if="{{type === 'list'}}">
+    <view class="skeleton-card" wx:for="{{count}}" wx:key="*this">
+      <view class="skeleton-image shimmer"></view>
+      <view class="skeleton-content">
+        <view class="skeleton-title shimmer"></view>
+        <view class="skeleton-meta shimmer"></view>
+        <view class="skeleton-footer shimmer"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 详情模式 -->
+  <view class="skeleton-detail" wx:if="{{type === 'detail'}}">
+    <view class="skeleton-detail-image shimmer"></view>
+    <view class="skeleton-detail-content">
+      <view class="skeleton-detail-title shimmer"></view>
+      <view class="skeleton-detail-section shimmer" wx:for="{{3}}" wx:key="*this"></view>
+    </view>
+  </view>
+
+  <!-- 通用行模式 -->
+  <view class="skeleton-rows" wx:if="{{type === 'rows'}}">
+    <view class="skeleton-row shimmer" wx:for="{{count}}" wx:key="*this"></view>
+  </view>
+</view>
