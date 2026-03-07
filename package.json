@@ -1,6 +1,10 @@
 {
   "dependencies": {
+    "core-js": "^3.48.0",
     "cors": "^2.8.6",
     "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "miniprogram-automator": "^0.12.1"
   }
 }

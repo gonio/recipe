@@ -57,13 +57,24 @@
           bindtap="goToDetail"
           data-id="{{item._id || item.id}}">
       <view class="recipe-image-wrapper">
-        <image class="recipe-image {{!item.imageUrl ? 'placeholder' : ''}}" 
-               src="{{item.imageUrl || '/images/default-food.png'}}" 
+        <image class="recipe-image {{!item.imageUrl ? 'placeholder' : ''}}"
+               src="{{item.imageUrl || '/images/default-food.png'}}"
                mode="aspectFill"/>
         <view class="cuisine-badge">{{item.cuisine || '自定义'}}</view>
+        <!-- Market 类型标识 -->
+        <view class="market-badge new" wx:if="{{item.marketType === 'new'}}">
+          <text class="badge-icon">✨</text>
+          <text>NEW</text>
+        </view>
+        <view class="market-badge recommended" wx:if="{{item.marketType === 'recommended'}}">
+          <text class="badge-icon">⭐</text>
+          <text>精选</text>
+        </view>
       </view>
       <view class="recipe-content">
         <text class="recipe-name">{{item.name}}</text>
+        <!-- 推荐理由 -->
+        <view class="recommend-reason" wx:if="{{item.marketReason}}">{{item.marketReason}}</view>
         <view class="recipe-footer">
           <text class="cook-time" wx:if="{{item.cookTime}}">{{item.cookTime}}分钟</text>
           <view class="favorite-btn" catchtap="addFavorite" data-item="{{item}}">

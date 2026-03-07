@@ -22,7 +22,10 @@ Page({
 
     // 菜系筛选
     cuisines: ['全部', '川菜', '粤菜', '湘菜', '鲁菜', '苏菜', '浙菜', '闽菜', '徽菜', '家常菜'],
-    selectedCuisine: '全部'
+    selectedCuisine: '全部',
+
+    // 今日新增数量
+    newCount: 0
   },
 
   onLoad() {
@@ -59,8 +62,12 @@ Page({
       const marketRecipes = await getMarketRecipes();
 
       if (marketRecipes.length > 0) {
+        // 计算今日新增数量
+        const newCount = marketRecipes.filter(r => r.marketType === 'new').length;
+
         this.setData({
           recipes: marketRecipes,
+          newCount,
           noMore: true // 市场精选不分页
         });
       } else {

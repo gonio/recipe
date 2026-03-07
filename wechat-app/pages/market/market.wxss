@@ -196,6 +196,54 @@
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
+/* Market 类型标识 */
+.market-badge {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  display: flex;
+  align-items: center;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(4rpx);
+}
+
+.market-badge .badge-icon {
+  margin-right: 6rpx;
+  font-size: 22rpx;
+}
+
+.market-badge.new {
+  background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+  color: white;
+}
+
+.market-badge.recommended {
+  background: linear-gradient(135deg, #FFD93D, #FFED4A);
+  color: #8B6914;
+}
+
+/* 推荐理由标签 */
+.recommend-reason {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 12rpx;
+  padding: 6rpx 14rpx;
+  background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+  border-radius: 16rpx;
+  font-size: 22rpx;
+  color: var(--primary-dark);
+}
+
+.recommend-reason::before {
+  content: '💡';
+  margin-right: 6rpx;
+  font-size: 20rpx;
+}
+
 .recipe-content {
   padding: 20rpx;
 }
