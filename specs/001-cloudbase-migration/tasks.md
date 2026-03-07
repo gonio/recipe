@@ -157,22 +157,22 @@
 
 ### AI Curation Cloud Function (User Story 3)
 
-- [ ] T052 [US3] Implement name similarity algorithm (Levenshtein distance) in cloudfunctions/recipe-daily-curation/utils.js
-- [ ] T053 [US3] Create AI prompt template for recipe search in cloudfunctions/recipe-daily-curation/prompts.js
-- [ ] T054 [US3] Implement cloudfunctions/recipe-daily-curation/index.js with AI integration, deduplication, and heat comparison
-- [ ] T055 [US3] Implement fallback recommendation logic for days with no new AI content
-- [ ] T056 [US3] Deploy recipe-daily-curation cloud function
-- [ ] T057 [US3] Configure scheduled trigger (cron: 0 0 9 * * * *) for daily execution at 9:00 AM
+- [X] T052 [US3] Implement name similarity algorithm (Levenshtein distance) in cloudfunctions/recipe-daily-curation/utils.js
+- [X] T053 [US3] Create AI prompt template for recipe search in cloudfunctions/recipe-daily-curation/prompts.js
+- [X] T054 [US3] Implement cloudfunctions/recipe-daily-curation/index.js with AI integration, deduplication, and heat comparison
+- [X] T055 [US3] Implement fallback recommendation logic for days with no new AI content
+- [X] T056 [US3] Deploy recipe-daily-curation cloud function
+- [X] T057 [US3] Configure scheduled trigger (cron: 0 0 9 * * * *) for daily execution at 9:00 AM
 
 ### Market Page (User Story 3)
 
-- [ ] T058 [US3] Create wechat-app/pages/market/ directory with WXML, WXSS, JS for Market tab
-- [ ] T059 [US3] Implement "New" and "Today's Pick" indicators in market recipe cards
+- [X] T058 [US3] Create wechat-app/pages/market/ directory with WXML, WXSS, JS for Market tab
+- [X] T059 [US3] Implement "New" and "Today's Pick" indicators in market recipe cards
 - [ ] T060 [US3] Add date-based caching for market recipes to reduce API calls
 
 ### Curation Logging (User Story 3)
 
-- [ ] T061 [US3] Implement logging to ai_generation_logs collection with job status, recipes added, duplicates detected
+- [X] T061 [US3] Implement logging to ai_generation_logs collection with job status, recipes added, duplicates detected
 - [ ] T062 [US3] Create simple monitoring view (optional) or console logging for curation job results
 
 **Checkpoint**: All user stories independently functional
