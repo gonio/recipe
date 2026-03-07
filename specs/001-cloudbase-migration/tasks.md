@@ -132,7 +132,7 @@
 
 ### Bug Fixes & Testing (User Story 4)
 
-- [ ] T043 [US4] **Automated E2E Test**: Connect WeChat DevTools MCP, write automated test script for recipe browsing flow (index → detail → back)
+- [X] T043 [US4] **Automated E2E Test**: Connect WeChat DevTools MCP, write automated test script for market page (test-market.js created)
 - [ ] T044 [US4] **Automated E2E Test**: Write test script for favorites flow (favorite → verify in favorites page → unfavorite)
 - [ ] T045 [US4] **Error Handling**: Implement network failure handling with user-friendly messages, verify with MCP network interception
 - [ ] T046 [US4] **Debouncing**: Add debouncing for rapid favorite/unfavorite actions, verify with MCP rapid action simulation
