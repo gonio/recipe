@@ -1,0 +1,46 @@
+{
+  "name": "菜谱小程序 MCP 自动化测试配置",
+  "version": "1.0.0",
+  "projectPath": "/mnt/d/recipe/recipe-miniapp/wechat-app",
+  "timeout": {
+    "default": 10000,
+    "navigation": 15000,
+    "network": 20000
+  },
+  "pages": {
+    "index": "/pages/index/index",
+    "market": "/pages/market/market",
+    "favorites": "/pages/favorites/favorites",
+    "recommend": "/pages/recommend/recommend",
+    "profile": "/pages/profile/profile",
+    "search": "/pages/search/search",
+    "recipeDetail": "/pages/recipe-detail/recipe-detail",
+    "preferences": "/pages/preferences/preferences"
+  },
+  "selectors": {
+    "recipeCard": ".recipe-item",
+    "favoriteBtn": ".favorite-btn",
+    "cuisineTag": ".cuisine-tag",
+    "searchInput": ".search-input",
+    "marketBadgeNew": ".market-badge.new",
+    "marketBadgeRecommended": ".market-badge.recommended",
+    "recommendReason": ".recommend-reason",
+    "newNotice": ".new-notice",
+    "loadingState": ".loading-dots",
+    "emptyState": ".empty-state"
+  },
+  "testData": {
+    "searchKeywords": ["鸡", "鱼", "豆腐", "肉"],
+    "cuisines": ["川菜", "粤菜", "湘菜", "鲁菜", "家常菜"]
+  },
+  "performance": {
+    "maxLoadTime": 2000,
+    "maxActionTime": 300,
+    "maxSearchTime": 1000
+  },
+  "retry": {
+    "enabled": true,
+    "maxRetries": 3,
+    "delay": 1000
+  }
+}
