@@ -132,15 +132,15 @@
 
 ### Bug Fixes & Testing (User Story 4)
 
-- [ ] T043 [US4] Test and fix any existing functional bugs in recipe browsing, search, and detail view
-- [ ] T044 [US4] Test and fix any existing functional bugs in favorites and recommendations
-- [ ] T045 [US4] Implement error handling for network failures in all API calls with user-friendly messages
-- [ ] T046 [US4] Add debouncing for rapid favorite/unfavorite actions to prevent duplicate operations
-- [ ] T047 [US4] Implement offline detection and graceful degradation in wechat-app/app.js
+- [ ] T043 [US4] **Automated E2E Test**: Connect WeChat DevTools MCP, write automated test script for recipe browsing flow (index → detail → back)
+- [ ] T044 [US4] **Automated E2E Test**: Write test script for favorites flow (favorite → verify in favorites page → unfavorite)
+- [ ] T045 [US4] **Error Handling**: Implement network failure handling with user-friendly messages, verify with MCP network interception
+- [ ] T046 [US4] **Debouncing**: Add debouncing for rapid favorite/unfavorite actions, verify with MCP rapid action simulation
+- [ ] T047 [US4] **Offline Mode**: Implement offline detection in app.js, test with MCP offline emulation
 
 ### Performance Optimization (User Story 4)
 
-- [ ] T048 [US4] Verify and optimize page load times to meet <2s target on 4G networks
+- [ ] T048 [US4] **Performance Test**: Use MCP to measure page load times, optimize to meet <2s target
 - [ ] T049 [US4] Add skeleton screens to all pages with loading states
 - [ ] T050 [US4] Implement image lazy loading and placeholder for failed image loads
 - [ ] T051 [US4] Add cache strategy for market_daily and user preferences (1 hour cache)

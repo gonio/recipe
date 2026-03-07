@@ -1,6 +1,95 @@
 # 🧪 前端测试指南
 
-## 快速开始（3分钟）
+## 测试方式概览
+
+本项目支持两种测试方式：
+
+| 方式 | 适用场景 | 速度 | 工具 |
+|------|---------|------|------|
+| **自动化 MCP 测试** ⭐推荐 | 回归测试、性能测试、CI/CD | 快（分钟级） | WeChat DevTools MCP |
+| **手动测试** | 探索性测试、UI 微调 | 慢（小时级） | 微信开发者工具 |
+
+---
+
+## 🤖 自动化 MCP 测试（推荐）
+
+通过 **WeChat Developer Tools MCP** 实现端到端自动化测试。
+
+### MCP 能力
+
+- **页面快照** (`get_page_snapshot`): 获取页面元素结构
+- **元素操作** (`click`, `fill`, `scroll`): 模拟用户交互
+- **页面导航** (`navigate_to`, `switch_tab`): 在页面间跳转
+- **断言验证** (`assert_text`, `assert_state`): 验证预期结果
+- **网络模拟** (`emulate`): 模拟离线/慢网环境
+- **控制台监控** (`list_console_messages`): 捕获运行时日志
+
+### 快速开始
+
+```bash
+# 1. 确保微信开发者工具已打开项目
+cd /mnt/d/recipe/recipe-miniapp/wechat-app
+
+# 2. 运行自动化测试
+# MCP 将自动连接 DevTools 并执行测试
+```
+
+### 测试脚本示例
+
+```javascript
+// test-market.js - 测试市场页面
+async function testMarketPage() {
+  // 连接 DevTools
+  await connect_devtools({ projectPath: '/mnt/d/recipe/recipe-miniapp/wechat-app' });
+
+  // 切换到 Market Tab
+  await switch_tab({ url: '/pages/market/market' });
+
+  // 获取页面快照
+  const snapshot = await get_page_snapshot();
+
+  // 验证今日新增提示存在
+  const hasNotice = snapshot.includes('今日新增');
+  assert(hasNotice, '应显示今日新增提示');
+
+  // 点击第一个菜谱
+  await click({ uid: 'recipe-item-0' });
+
+  // 验证跳转到详情页
+  await wait_for({ text: '食材' });
+
+  console.log('✅ Market 页面测试通过');
+}
+```
+
+### 测试覆盖范围
+
+| 功能 | 测试脚本 | MCP 命令组合 |
+|------|---------|-------------|
+| 菜谱浏览 | `test-browse.js` | `navigate_to` → `get_page_snapshot` → `click` → `assert_text` |
+| 搜索功能 | `test-search.js` | `fill` → `press_key(Enter)` → `wait_for` → `assert_state` |
+| 收藏/取消 | `test-favorite.js` | `click` → `wait_for` → `switch_tab` → `assert_text` |
+| 网络错误 | `test-network.js` | `emulate(offline)` → `click` → `assert_text(error-msg)` |
+| 性能测试 | `test-perf.js` | `navigate_page` → measure time → `assert < 2000ms` |
+
+### 批量运行测试
+
+```bash
+# 运行所有自动化测试
+npm run test:mcp
+
+# 运行指定测试
+npm run test:mcp -- --test test-market.js
+
+# 生成测试报告
+npm run test:mcp -- --report
+```
+
+---
+
+## 🖐️ 手动测试
+
+当自动化测试无法满足需求时使用（如 UI 微调、探索性测试）。
 
 ### 1. 启动测试服务器
 ```bash
@@ -84,9 +173,45 @@ ngrok http 3999
 
 ---
 
-## ✅ 测试 checklist
+## ✅ 测试 Checklist
 
-### 首页
+### 🤖 MCP 自动化测试
+
+```javascript
+// 测试套件配置
+const testSuite = {
+  // 首页测试
+  home: [
+    { name: '显示问候语', cmd: 'assert_text', selector: '.greeting', expect: '包含"你好"' },
+    { name: '新菜谱徽章', cmd: 'assert_state', selector: '.badge', visible: true },
+    { name: '搜索跳转', cmd: 'click', selector: '.search-bar', then: 'navigate_to /pages/search/search' },
+    { name: '菜系筛选', cmd: 'click', selector: '.cuisine-tag', then: 'assert_active' },
+    { name: '菜谱列表', cmd: 'assert_state', selector: '.recipe-card', count: '>0' },
+    { name: '跳转详情', cmd: 'click', selector: '.recipe-card', then: 'wait_for 食材' },
+    { name: '取消收藏', cmd: 'click', selector: '.heart-btn', then: 'assert_text 已取消' }
+  ],
+
+  // 市场页测试
+  market: [
+    { name: '今日新增提示', cmd: 'assert_text', selector: '.new-notice', expect: '包含"今日新增"' },
+    { name: '菜谱网格', cmd: 'assert_state', selector: '.recipe-grid', visible: true },
+    { name: 'NEW标识', cmd: 'assert_state', selector: '.market-badge.new', visible: true },
+    { name: '精选标识', cmd: 'assert_state', selector: '.market-badge.recommended', visible: true },
+    { name: '推荐理由', cmd: 'assert_text', selector: '.recommend-reason', expect: '非空' }
+  ],
+
+  // 性能测试
+  performance: [
+    { name: '首页加载<2s', cmd: 'measure_load', page: 'index', max: 2000 },
+    { name: '详情页加载<2s', cmd: 'measure_load', page: 'recipe-detail', max: 2000 },
+    { name: '收藏响应<300ms', cmd: 'measure_action', action: 'favorite', max: 300 }
+  ]
+};
+```
+
+### 🖐️ 手动测试（UI 微调时使用）
+
+#### 首页
 - [ ] 正常显示问候语和用户名
 - [ ] 显示"3道新菜谱"徽章
 - [ ] 点击搜索栏跳转搜索页
@@ -95,107 +220,170 @@ ngrok http 3999
 - [ ] 点击菜谱卡片跳转详情页
 - [ ] 点击心形取消收藏
 
-### 市场页
+#### 市场页
 - [ ] 显示"今日新增X道菜谱"提示
+- [ ] NEW/精选标识正确显示
+- [ ] 推荐理由显示完整
 - [ ] 菜谱网格布局正确
 - [ ] 点击菜谱跳转详情
 - [ ] 点击收藏按钮收藏成功
-- [ ] 收藏后该菜谱从市场消失
 
-### 推荐页
+#### 推荐页
 - [ ] 显示今日日期
-- [ ] 显示3道推荐菜谱
-- [ ] 第一个推荐显示"今日首选"标签
-- [ ] 食材预览正确显示
+- [ ] 显示推荐菜谱
 - [ ] 收藏/取消收藏功能正常
-- [ ] 换一批推荐按钮可用
 
-### 个人中心
+#### 个人中心
 - [ ] 用户头像和昵称显示正确
-- [ ] 统计数字（菜谱数、菜系数）正确
-- [ ] 点击偏好设置跳转设置页
-- [ ] 关于我们和意见反馈可点击
+- [ ] 统计数字正确
+- [ ] 偏好设置可点击
 
-### 偏好设置
+#### 偏好设置
 - [ ] 显示当前已选择的菜系
 - [ ] 点击菜系可选中/取消
-- [ ] 点击已选标签可移除
 - [ ] 保存设置成功提示
 
-### 搜索页
+#### 搜索页
 - [ ] 输入关键词实时搜索
-- [ ] 搜索历史显示和点击
-- [ ] 热门搜索可点击
 - [ ] 搜索结果正确显示
 - [ ] 点击结果跳转详情
 
-### 菜谱详情
+#### 菜谱详情
 - [ ] 大图展示正常
 - [ ] 食材清单完整显示
 - [ ] 步骤列表带序号显示
 - [ ] 收藏按钮可点击
-- [ ] 分享功能正常
 
 ---
 
 ## 🔧 常见问题
 
-### 1. 提示"未能连接到服务器"
-- 检查测试服务器是否运行（`node test-server.js`）
-- 检查 `apiBaseUrl` 配置是否正确
-- 检查微信开发者工具是否勾选「不校验合法域名」
+### MCP 连接失败
+```bash
+# 检查微信开发者工具是否运行
+# 检查项目路径是否正确
+# 尝试重新连接
+await reconnect_devtools({ projectPath: '/正确/路径/wechat-app' });
+```
 
-### 2. 真机测试无法连接
-- 确保手机和电脑在同一 WiFi
-- 检查防火墙是否开放 3999 端口
-- 使用电脑 IP 而非 localhost
+### 页面元素找不到
+```javascript
+// 使用更通用的选择器
+await click({ selector: 'view.recipe-card' });  // 使用 CSS 选择器
+await click({ text: '宫保鸡丁' });              // 使用文本匹配
+```
 
-### 3. 数据显示异常
-- 打开微信开发者工具「调试器」
-- 查看 Console 面板的报错信息
-- 检查 Network 面板的 API 请求是否成功
+### 数据显示异常
+```javascript
+// 通过 MCP 捕获控制台日志
+const logs = await list_console_messages({ types: ['error', 'warn'] });
+console.log('错误日志:', logs);
+```
 
 ---
 
 ## 📝 测试数据说明
 
-测试服务器内置了5道示例菜谱：
-- 麻婆豆腐（川菜）
-- 剁椒鱼头（湘菜）
-- 番茄炒蛋（家常菜）
-- 红烧肉（家常菜）
-- 糖醋排骨（家常菜）
+CloudBase 数据库已预置 5 道示例菜谱：
+- 🌶️ 宫保鸡丁（川菜，热度 85）
+- 🐟 清蒸鲈鱼（粤菜，热度 78）
+- 🌶️ 麻婆豆腐（川菜，热度 92）
+- 🍖 糖醋排骨（家常菜，热度 88）
+- 🥚 番茄炒蛋（家常菜，热度 95）
 
-以及一个测试用户，默认收藏了前3道。
+测试用户 OpenID: `test_user_openid_001`
+默认收藏：宫保鸡丁、清蒸鲈鱼
 
 ---
 
-## 🐛 调试技巧
+## 🐛 MCP 调试技巧
 
-### 查看 API 请求
-在微信开发者工具：
-1. 打开「调试器」
-2. 切换到「Network」面板
-3. 查看 API 请求和响应
+### 1. 页面快照分析
+```javascript
+// 获取完整页面结构
+const snapshot = await get_page_snapshot({ verbose: true });
+console.log(snapshot);
+```
 
-### 模拟不同用户
-修改 `test-server.js` 中的 `mockUser` 数据，重启服务器即可。
+### 2. 网络请求监控
+```javascript
+// 捕获网络请求
+await clear_network_requests();
+await click({ selector: '.favorite-btn' });
+const requests = await get_network_requests({ type: 'request' });
+console.log('收藏接口请求:', requests);
+```
 
-### 添加更多测试数据
-在 `mockRecipes` 数组中添加更多菜谱对象。
+### 3. 模拟不同网络环境
+```javascript
+// 模拟慢网
+await emulate({ networkConditions: 'Slow 3G' });
+
+// 模拟离线
+await emulate({ networkConditions: 'Offline' });
+
+// 恢复
+await emulate({ networkConditions: null });
+```
+
+### 4. 性能分析
+```javascript
+// 测量页面加载时间
+const start = Date.now();
+await navigate_to({ url: '/pages/recipe-detail/recipe-detail' });
+await wait_for({ selector: '.recipe-name' });
+const loadTime = Date.now() - start;
+console.log(`页面加载时间: ${loadTime}ms`);
+assert(loadTime < 2000, '加载时间应小于2秒');
+```
 
 ---
 
 ## 🎉 测试通过标准
 
-- ✅ 所有页面能正常打开
-- ✅ 所有按钮能正常点击
-- ✅ 数据加载和显示正确
-- ✅ 收藏/取消收藏功能正常
-- ✅ 页面切换流畅无卡顿
-- ✅ 没有明显的样式问题
+### MCP 自动化测试通过标准
+```javascript
+const passCriteria = {
+  // 功能测试
+  functional: {
+    '首页浏览': true,      // 菜谱列表加载
+    '搜索功能': true,      // 关键词搜索
+    '收藏/取消': true,     // 收藏状态切换
+    '详情页': true,        // 菜谱详情展示
+    '市场页': true,        // 每日精选
+  },
 
-测试完成后，记得：
-1. 把 `apiBaseUrl` 改回真实后端地址
-2. 在小程序后台配置服务器域名
-3. 提交代码审核
+  // 性能指标
+  performance: {
+    '首页加载': '< 2000ms',
+    '详情页加载': '< 2000ms',
+    '收藏响应': '< 300ms',
+    '搜索响应': '< 1000ms'
+  },
+
+  // 错误处理
+  errorHandling: {
+    '网络错误提示': true,
+    '离线状态检测': true,
+    '空状态显示': true
+  }
+};
+```
+
+### 手动测试补充检查
+- ✅ UI 视觉效果符合设计稿
+- ✅ 动画过渡流畅自然
+- ✅ 不同屏幕尺寸适配良好
+- ✅ 无明显样式问题
+
+### 测试完成清单
+- [ ] MCP 自动化测试全部通过
+- [ ] 手动探索性测试完成
+- [ ] 性能指标达标
+- [ ] 错误处理验证完成
+- [ ] 测试报告已生成
+
+测试完成后：
+1. ✅ 提交代码
+2. ✅ 更新文档
+3. ✅ 部署到生产环境

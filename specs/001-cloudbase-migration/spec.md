@@ -226,6 +226,46 @@ All existing features work reliably without bugs, providing a smooth user experi
 - MCP tools should be available for CloudBase development
 - WeChat Mini Program development tools for testing
 - Existing MongoDB database access for data migration
+- **WeChat DevTools MCP**: Automated Mini Program testing via MCP integration
+
+## Testing Approach
+
+### Automated E2E Testing with WeChat DevTools MCP
+
+This feature uses **WeChat Developer Tools MCP** for automated end-to-end testing, replacing traditional manual testing approaches.
+
+**MCP Capabilities Utilized**:
+- **Page Snapshot**: Capture accessibility tree for element identification
+- **Element Interaction**: Click, input, scroll automation
+- **Console Monitoring**: Capture and analyze runtime logs
+- **Network Interception**: Simulate offline/slow network conditions
+- **Performance Metrics**: Measure page load times and rendering performance
+
+**Test Coverage**:
+
+| Flow | Test Method | MCP Commands |
+|------|-------------|--------------|
+| Recipe Browsing | Automated | `connect_devtools` → `navigate_to` → `get_page_snapshot` → `click` → `assert_text` |
+| Search Function | Automated | `fill` → `press_key` → `wait_for` → `assert_state` |
+| Favorite/Unfavorite | Automated | `click` → `wait_for` → `navigate_to` → `assert_text` |
+| Network Error Handling | Automated | `emulate` (network) → `click` → `assert_text` (error message) |
+| Offline Mode | Automated | `emulate` (offline) → `assert_state` (offline indicator) |
+| Performance | Automated | `navigate_page` → measure duration → assert < 2s |
+
+**Testing Workflow**:
+1. Connect to WeChat DevTools via MCP (`connect_devtools`)
+2. Navigate to target page (`navigate_to`)
+3. Capture page snapshot for element discovery (`get_page_snapshot`)
+4. Execute user actions (`click`, `fill`, `scroll`)
+5. Assert expected outcomes (`assert_text`, `assert_state`)
+6. Capture console logs for error detection (`list_console_messages`)
+
+**Benefits**:
+- Faster regression testing (minutes vs hours)
+- Reproducible test scenarios
+- Real device simulation in DevTools
+- Automated performance measurement
+- CI/CD integration ready
 
 ## Clarifications
 
