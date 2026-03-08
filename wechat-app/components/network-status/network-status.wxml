@@ -1,0 +1,13 @@
+<!-- 网络状态提示组件 -->
+<view class="network-status {{isOnline ? 'online' : 'offline'}} {{isVisible ? 'visible' : ''}}" bindtap="onTap">
+  <view class="status-content">
+    <view class="status-icon">
+      <text wx:if="{{!isOnline}}" class="icon">📡</text>
+      <text wx:if="{{isOnline}}" class="icon">✅</text>
+    </view>
+    <text class="status-text">{{message}}</text>
+    <view wx:if="{{!isOnline}}" class="refresh-btn" catchtap="onRefresh">
+      <text>刷新</text>
+    </view>
+  </view>
+</view>

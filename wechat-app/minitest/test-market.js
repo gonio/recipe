@@ -10,7 +10,7 @@
 
 // 测试配置
 const TEST_CONFIG = {
-  projectPath: '/mnt/d/recipe/recipe-miniapp/wechat-app',
+  projectPath: 'D:\\recipe\\recipe-miniapp\\wechat-app',
   timeout: 10000,
   pages: {
     market: '/pages/market/market',

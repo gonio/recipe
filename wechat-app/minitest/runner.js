@@ -13,7 +13,7 @@ const path = require('path');
 
 // 测试配置
 const CONFIG = {
-  projectPath: '/mnt/d/recipe/recipe-miniapp/wechat-app',
+  projectPath: 'D:\\recipe\\recipe-miniapp\\wechat-app',
   timeout: 30000,
   testDir: __dirname,
   outputDir: path.join(__dirname, 'reports')

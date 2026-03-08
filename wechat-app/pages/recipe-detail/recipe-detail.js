@@ -79,9 +79,17 @@ Page({
   },
 
   /**
-   * 切换收藏状态
+   * 切换收藏状态（带防抖）
    */
   async toggleFavorite() {
+    // 防抖：防止重复点击
+    if (this.data.isTogglingFavorite) {
+      console.log('收藏操作过于频繁，已防抖');
+      return;
+    }
+
+    this.setData({ isTogglingFavorite: true });
+
     const { recipeId, isFavorited, recipe } = this.data;
 
     try {
@@ -110,6 +118,11 @@ Page({
     } catch (error) {
       console.error('切换收藏失败:', error);
       handleCloudError(error);
+    } finally {
+      // 500ms 后重置防抖状态
+      setTimeout(() => {
+        this.setData({ isTogglingFavorite: false });
+      }, 500);
     }
   },
 

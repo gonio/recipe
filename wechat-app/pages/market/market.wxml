@@ -1,5 +1,9 @@
 <view class="container">
-  <!-- 搜索栏 -->
+  <!-- 骨架屏 -->
+  <loading-skeleton wx:if="{{loading}}" type="list" count="{{6}}" />
+
+  <!-- 搜索栏（加载完成后显示） -->
+  <view wx:if="{{!loading}}">
   <view class="search-bar {{searchFocus ? 'focus' : ''}}">
     <view class="search-input-wrapper">
       <image class="search-icon" src="/images/search.png" mode="aspectFit"/>
@@ -104,4 +108,5 @@
   <view class="no-more" wx:if="{{noMore && recipes.length > 0}}">
     <text>已经到底了</text>
   </view>
+  </view><!-- /!loading wrapper -->
 </view>

@@ -3,8 +3,12 @@
   "packOptions": {
     "ignore": [
       {
+        "value": "/minitest",
+        "type": "folder"
+      },
+      {
         "type": "folder",
-        "value": "/minitest"
+        "value": "minitest/"
       }
     ],
     "include": []
@@ -23,7 +27,7 @@
     "showShadowRootInWxmlPanel": true,
     "scopeDataCheck": false,
     "uglifyFileName": false,
-    "checkInvalidKey": true,
+    "checkInvalidKey": false,
     "checkSiteMap": true,
     "uploadWithSourceMap": true,
     "compileHotReLoad": false,
@@ -55,7 +59,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "2.32.0",
-  "appid": "wx03ce150ca5dbc6a4",
+  "appid": "wxb759f808a70a8eae",
   "projectname": "recipe-miniapp",
   "condition": {},
   "editorSetting": {

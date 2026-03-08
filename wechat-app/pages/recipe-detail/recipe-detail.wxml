@@ -90,9 +90,9 @@
           <text class="section-title">食材准备</text>
         </view>
         <view class="ingredients-list">
-          <view class="ingredient-item" wx:for="{{recipe.ingredients}}" wx:key="*this">
+          <view class="ingredient-item" wx:for="{{recipe.ingredients}}" wx:key="index">
             <view class="ingredient-dot"></view>
-            <text class="ingredient-text">{{item}}</text>
+            <text class="ingredient-text">{{item.name}} {{item.amount}}</text>
           </view>
         </view>
       </view>

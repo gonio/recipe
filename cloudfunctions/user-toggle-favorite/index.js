@@ -3,11 +3,11 @@
  * 支持事务操作，同时更新用户收藏列表和菜谱收藏数
  */
 
-const cloudbase = require('@cloudbase/node-sdk');
+const cloud = require('wx-server-sdk');
 
 // 初始化云开发环境
-const cloud = cloudbase.init({
-  env: cloudbase.SYMBOL_CURRENT_ENV
+cloud.init({
+  env: cloud.DYNAMIC_CURRENT_ENV
 });
 
 const db = cloud.database();
@@ -18,7 +18,7 @@ const _ = db.command;
  */
 exports.main = async (event, context) => {
   const { action, recipeId } = event;
-  const { OPENID } = cloud.getCloudbaseContext(context);
+  const { OPENID } = cloud.getWXContext();
 
   // 参数校验
   if (!OPENID) {

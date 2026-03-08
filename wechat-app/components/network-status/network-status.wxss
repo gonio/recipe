@@ -1,0 +1,56 @@
+/* 网络状态提示组件样式 */
+
+.network-status {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  padding: 20rpx 30rpx;
+  transform: translateY(-100%);
+  transition: transform 0.3s ease;
+  opacity: 0;
+}
+
+.network-status.visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.network-status.offline {
+  background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);
+}
+
+.network-status.online {
+  background: linear-gradient(135deg, #51CF66 0%, #40C057 100%);
+}
+
+.status-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+}
+
+.status-icon .icon {
+  font-size: 32rpx;
+}
+
+.status-text {
+  font-size: 28rpx;
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+.refresh-btn {
+  margin-left: 20rpx;
+  padding: 8rpx 20rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8rpx;
+  backdrop-filter: blur(10rpx);
+}
+
+.refresh-btn text {
+  font-size: 24rpx;
+  color: #FFFFFF;
+}

@@ -1,0 +1,98 @@
+{
+  "summary": {
+    "total": 11,
+    "passed": 1,
+    "failed": 10,
+    "duration": 40980,
+    "averageTime": 4098
+  },
+  "slowest": {
+    "name": "首页",
+    "path": "/pages/index/index",
+    "loadTime": 4509,
+    "passed": false,
+    "target": 2000
+  },
+  "fastest": {
+    "name": "数据加载",
+    "loadTime": 2086,
+    "passed": false,
+    "target": 2000,
+    "attempts": 20
+  },
+  "allResults": [
+    {
+      "name": "首页",
+      "path": "/pages/index/index",
+      "loadTime": 4509,
+      "passed": false,
+      "target": 2000
+    },
+    {
+      "name": "市场页面",
+      "path": "/pages/market/market",
+      "loadTime": 4310,
+      "passed": false,
+      "target": 2000
+    },
+    {
+      "name": "收藏页面",
+      "path": "/pages/favorites/favorites",
+      "loadTime": 4468,
+      "passed": false,
+      "target": 2000
+    },
+    {
+      "name": "推荐页面",
+      "path": "/pages/recommend/recommend",
+      "loadTime": 4410,
+      "passed": false,
+      "target": 2000
+    },
+    {
+      "name": "个人中心",
+      "path": "/pages/profile/profile",
+      "loadTime": 4332,
+      "passed": false,
+      "target": 2000
+    },
+    {
+      "name": "搜索页面",
+      "path": "/pages/search/search",
+      "loadTime": 4472,
+      "passed": false,
+      "target": 2000
+    },
+    {
+      "name": "数据加载",
+      "loadTime": 2086,
+      "passed": false,
+      "target": 2000,
+      "attempts": 20
+    },
+    {
+      "name": "市场Tab切换",
+      "loadTime": 4133,
+      "passed": false,
+      "target": 300
+    },
+    {
+      "name": "推荐Tab切换",
+      "loadTime": 4079,
+      "passed": false,
+      "target": 300
+    },
+    {
+      "name": "个人Tab切换",
+      "loadTime": 4181,
+      "passed": false,
+      "target": 300
+    },
+    {
+      "name": "页面栈深度",
+      "value": 1,
+      "passed": true,
+      "target": "<= 5"
+    }
+  ]
+}

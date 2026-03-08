@@ -7,6 +7,10 @@ const { getRecipesByCuisine, getMarketRecipes } = require('../../utils/recipe-ap
 const { toggleFavorite } = require('../../utils/user-api');
 const { showLoading, hideLoading, showSuccess, showError } = require('../../utils/ui-helpers');
 
+// 缓存键名
+const CACHE_KEY = 'market_daily_cache';
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 小时
+
 Page({
   data: {
     recipes: [],
@@ -29,7 +33,18 @@ Page({
   },
 
   onLoad() {
-    this.loadData();
+    // 检查缓存，如果是同一天则使用缓存
+    const cached = this.getCachedData();
+    if (cached) {
+      console.log('使用缓存的市场数据');
+      this.setData({
+        recipes: cached.recipes,
+        newCount: cached.newCount,
+        noMore: true
+      });
+    } else {
+      this.loadData();
+    }
   },
 
   onShow() {
@@ -41,6 +56,8 @@ Page({
   },
 
   onPullDownRefresh() {
+    // 清除缓存，强制刷新
+    this.clearCache();
     this.setData({ page: 0, noMore: false });
     this.loadData().finally(() => {
       wx.stopPullDownRefresh();
@@ -70,6 +87,9 @@ Page({
           newCount,
           noMore: true // 市场精选不分页
         });
+
+        // 保存到缓存
+        this.setCachedData(marketRecipes, newCount);
       } else {
         // 如果没有市场精选，加载热门菜谱
         await this.loadRecipes();
@@ -187,5 +207,53 @@ Page({
     wx.navigateTo({
       url: `/pages/recipe-detail/recipe-detail?id=${id}&from=market`
     });
+  },
+
+  // 获取缓存数据
+  getCachedData() {
+    try {
+      const cache = wx.getStorageSync(CACHE_KEY);
+      if (!cache) return null;
+
+      const today = new Date().toDateString();
+
+      // 检查是否是同一天
+      if (cache.date === today && cache.recipes && cache.recipes.length > 0) {
+        return cache;
+      }
+
+      // 缓存过期，清除
+      wx.removeStorageSync(CACHE_KEY);
+      return null;
+    } catch (error) {
+      console.error('读取缓存失败:', error);
+      return null;
+    }
+  },
+
+  // 保存数据到缓存
+  setCachedData(recipes, newCount) {
+    try {
+      const cache = {
+        date: new Date().toDateString(),
+        recipes,
+        newCount,
+        cachedAt: Date.now()
+      };
+      wx.setStorageSync(CACHE_KEY, cache);
+      console.log('市场数据已缓存');
+    } catch (error) {
+      console.error('保存缓存失败:', error);
+    }
+  },
+
+  // 清除缓存（用于强制刷新）
+  clearCache() {
+    try {
+      wx.removeStorageSync(CACHE_KEY);
+      console.log('市场缓存已清除');
+    } catch (error) {
+      console.error('清除缓存失败:', error);
+    }
   }
 });

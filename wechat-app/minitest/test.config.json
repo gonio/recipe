@@ -1,7 +1,7 @@
 {
   "name": "菜谱小程序 MCP 自动化测试配置",
   "version": "1.0.0",
-  "projectPath": "/mnt/d/recipe/recipe-miniapp/wechat-app",
+  "projectPath": "D:\\recipe\\recipe-miniapp\\wechat-app",
   "timeout": {
     "default": 10000,
     "navigation": 15000,

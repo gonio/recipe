@@ -1,5 +1,7 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "loading-skeleton": "/components/loading-skeleton/loading-skeleton"
+  },
   "navigationBarTitleText": "搜索",
   "backgroundColor": "#F5F9FF"
 }

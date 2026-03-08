@@ -216,6 +216,38 @@ function truncate(text, maxLength = 50, suffix = '...') {
   return text.substring(0, maxLength - suffix.length) + suffix;
 }
 
+/**
+ * 处理云开发错误
+ * @param {Object} error - 错误对象
+ * @param {string} defaultMessage - 默认错误消息
+ */
+function handleCloudError(error, defaultMessage = '操作失败') {
+  console.error('Cloud error:', error);
+
+  const errCode = error.errCode || error.code;
+  const errMsg = error.errMsg || error.message || String(error);
+
+  // 根据错误码显示不同的提示
+  const errorMap = {
+    '-601034': '云开发环境未配置，请检查环境ID',
+    '-501001': '数据库查询失败',
+    '-501002': '数据库写入失败',
+    '-501003': '数据库更新失败',
+    '-501004': '数据库删除失败',
+    '-502001': '云函数调用失败',
+    '-502002': '云函数不存在',
+    '-503001': '文件上传失败',
+    '-503002': '文件下载失败',
+    '-504001': '网络请求失败',
+    '-504002': '请求超时',
+    '-505001': '用户未登录',
+    '-505002': '权限不足'
+  };
+
+  const message = errorMap[errCode] || errMsg || defaultMessage;
+  showError(message);
+}
+
 module.exports = {
   // 加载状态
   showLoading,
@@ -238,5 +270,8 @@ module.exports = {
   formatTime,
   formatCookTime,
   formatDifficulty,
-  truncate
+  truncate,
+
+  // 错误处理
+  handleCloudError
 };

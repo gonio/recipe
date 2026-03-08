@@ -39,7 +39,13 @@ exports.main = async (event, context) => {
     recipesDuplicated: 0,
     recipesUpdated: 0,
     fallbackToExisting: false,
-    modelUsed: 'hunyuan-2.0-instruct-20251111',
+    modelUsed: AI_CONFIG.model,
+    aiConfig: {
+      timeout: AI_CONFIG.timeout,
+      maxRetries: AI_CONFIG.maxRetries
+    },
+    aiRetriesUsed: 0,
+    aiTimeoutOccurred: false,
     errors: []
   };
 
@@ -66,8 +72,11 @@ exports.main = async (event, context) => {
 
     // 3. 使用 AI 搜索新菜谱
     console.log(`[${jobId}] 使用 AI 搜索新菜谱...`);
-    const aiRecipes = await searchRecipesWithAI();
+    const aiResult = await searchRecipesWithAI(logEntry);
+    const aiRecipes = aiResult.recipes;
     logEntry.recipesSearched = aiRecipes.length;
+    logEntry.aiRetriesUsed = aiResult.retriesUsed || 0;
+    logEntry.aiTimeoutOccurred = aiResult.timeoutOccurred || false;
 
     // 4. 获取现有菜谱用于去重
     const existingRecipes = await getExistingRecipes();
@@ -171,54 +180,152 @@ exports.main = async (event, context) => {
     });
     await saveLog(logEntry);
 
+    // 区分超时错误和其他错误
+    const isTimeoutError = error.message.includes('超时') ||
+                           error.message.includes('timeout');
+
     return {
       code: -1,
-      message: error.message,
-      data: { jobId }
+      message: isTimeoutError ? 'AI 服务响应超时，请稍后重试' : error.message,
+      data: {
+        jobId,
+        isTimeout: isTimeoutError,
+        aiConfig: AI_CONFIG
+      }
     };
   }
 };
 
 /**
- * 使用 AI 搜索新菜谱
- * @returns {Promise<Array>} AI 生成的菜谱列表
+ * AI 调用配置
  */
-async function searchRecipesWithAI() {
-  try {
-    const ai = cloud.ai();
-    const model = ai.createModel('hunyuan-exp');
+const AI_CONFIG = {
+  // 超时时间 30 秒
+  timeout: 30000,
+  // 最大重试次数
+  maxRetries: 3,
+  // 重试延迟基数（毫秒）
+  retryDelayBase: 1000,
+  // 模型名称
+  model: 'hunyuan-2.0-instruct-20251111'
+};
 
-    const prompt = generateRecipeSearchPrompt();
+/**
+ * 带超时的 Promise
+ * @param {Promise} promise 原始 Promise
+ * @param {number} timeout 超时时间（毫秒）
+ * @param {string} errorMessage 超时错误信息
+ * @returns {Promise}
+ */
+function withTimeout(promise, timeout, errorMessage) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(errorMessage)), timeout);
+    })
+  ]);
+}
 
-    const result = await model.generateText({
-      model: 'hunyuan-2.0-instruct-20251111',
-      messages: [
-        {
-          role: 'system',
-          content: '你是一个专业的美食菜谱助手，擅长发现各种美味佳肴。请严格按照用户要求的 JSON 格式返回数据。'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.8
-    });
+/**
+ * 延迟函数
+ * @param {number} ms 毫秒
+ * @returns {Promise}
+ */
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-    if (!result.text) {
-      throw new Error('AI 返回结果为空');
+/**
+ * 使用 AI 搜索新菜谱（带超时和重试）
+ * @param {Object} logEntry 日志记录对象（用于跟踪重试次数）
+ * @returns {Promise<{recipes: Array, retriesUsed: number, timeoutOccurred: boolean}>} AI 生成的菜谱列表和元数据
+ */
+async function searchRecipesWithAI(logEntry = {}) {
+  let lastError = null;
+  let timeoutOccurred = false;
+  let retriesUsed = 0;
+
+  for (let attempt = 1; attempt <= AI_CONFIG.maxRetries; attempt++) {
+    try {
+      console.log(`AI 调用尝试 ${attempt}/${AI_CONFIG.maxRetries}...`);
+
+      const ai = cloud.ai();
+      const model = ai.createModel('hunyuan-exp');
+
+      const prompt = generateRecipeSearchPrompt();
+
+      // 创建 AI 调用 Promise
+      const aiCallPromise = model.generateText({
+        model: AI_CONFIG.model,
+        messages: [
+          {
+            role: 'system',
+            content: '你是一个专业的美食菜谱助手，擅长发现各种美味佳肴。请严格按照用户要求的 JSON 格式返回数据。'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.8
+      });
+
+      // 添加超时控制
+      const result = await withTimeout(
+        aiCallPromise,
+        AI_CONFIG.timeout,
+        `AI 调用超时（>${AI_CONFIG.timeout}ms）`
+      );
+
+      if (!result.text) {
+        throw new Error('AI 返回结果为空');
+      }
+
+      const recipes = parseRecipeResponse(result.text);
+      console.log(`AI 搜索成功，发现 ${recipes.length} 道菜谱`);
+
+      return {
+        recipes,
+        retriesUsed: retriesUsed,
+        timeoutOccurred: false
+      };
+
+    } catch (error) {
+      lastError = error;
+      const isTimeout = error.message.includes('超时') || error.message.includes('timeout');
+
+      if (isTimeout) {
+        timeoutOccurred = true;
+        console.error(`AI 调用尝试 ${attempt} 超时`);
+      } else {
+        console.error(`AI 调用尝试 ${attempt} 失败:`, error.message);
+      }
+
+      // 最后一次尝试，不再重试
+      if (attempt === AI_CONFIG.maxRetries) {
+        console.error('AI 调用已达最大重试次数，放弃重试');
+        break;
+      }
+
+      retriesUsed = attempt;
+
+      // 计算退避延迟（指数退避 + 随机抖动）
+      const backoffDelay = AI_CONFIG.retryDelayBase * Math.pow(2, attempt - 1);
+      const jitter = Math.random() * 1000;
+      const waitTime = Math.min(backoffDelay + jitter, 10000); // 最多等待 10 秒
+
+      console.log(`等待 ${Math.round(waitTime)}ms 后重试...`);
+      await delay(waitTime);
     }
-
-    const recipes = parseRecipeResponse(result.text);
-    console.log(`AI 搜索到 ${recipes.length} 道菜谱`);
-
-    return recipes;
-
-  } catch (error) {
-    console.error('AI 搜索菜谱失败:', error);
-    // 返回空数组，触发降级逻辑
-    return [];
   }
+
+  // 所有重试都失败，记录错误并返回空数组触发降级
+  console.error('AI 搜索菜谱最终失败:', lastError?.message);
+  return {
+    recipes: [],
+    retriesUsed: retriesUsed,
+    timeoutOccurred: timeoutOccurred
+  };
 }
 
 /**

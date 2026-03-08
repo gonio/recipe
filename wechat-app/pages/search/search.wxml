@@ -51,7 +51,10 @@
 
   <!-- 搜索结果 -->
   <view class="result-section" wx:if="{{keyword}}">
-    <view class="result-header">
+    <!-- 骨架屏 -->
+    <loading-skeleton wx:if="{{loading}}" type="rows" count="{{8}}" />
+
+    <view class="result-header" wx:if="{{!loading}}">
       <text>"{{keyword}}" 的搜索结果</text>
       <text class="result-count">共 {{total}} 个</text>
     </view>

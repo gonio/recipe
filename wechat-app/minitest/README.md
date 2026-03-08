@@ -4,12 +4,72 @@
 
 ## 快速开始
 
-### 1. 环境准备
+### 1. 启动开发者工具
 
-确保已安装：
-- 微信开发者工具（最新版）
-- Claude Desktop 或支持 MCP 的环境
-- 小程序项目已导入微信开发者工具
+使用智能轮询脚本自动启动：
+
+```bash
+cd wechat-app/minitest
+
+# 启动开发者工具（自动轮询检测就绪）
+node launch-devtools.js
+```
+
+脚本会自动：
+- 启动微信开发者工具
+- 轮询检测端口 9420 就绪
+- 连接验证成功即表示启动完成
+- 保持开发者工具运行
+
+### 2. 运行 MCP 测试
+
+开发者工具启动后，运行测试：
+
+```bash
+# 方式一：使用 Claude MCP 工具直接测试
+# （Claude 会自动连接并执行测试）
+
+# 方式二：使用测试运行器
+node runner.js
+
+# 方式三：运行单个测试
+node test-market.js
+```
+
+## 测试流程
+
+### 完整流程示例
+
+```javascript
+// 1. 启动开发者工具（launch-devtools.js）
+// 2. 使用 MCP 运行测试
+
+// 连接开发者工具
+await mcp__weixin-devtools-mcp__connect_devtools({
+  projectPath: 'D:\\recipe\\recipe-miniapp\\wechat-app',
+  strategy: 'wsEndpoint',
+  wsEndpoint: 'ws://127.0.0.1:9420'
+});
+
+// 刷新页面开始测试
+await mcp__weixin-devtools-mcp__relaunch({
+  url: '/pages/index/index',
+  waitForLoad: true
+});
+
+// 获取页面快照
+const snapshot = await mcp__weixin-devtools-mcp__get_page_snapshot({
+  format: 'compact'
+});
+
+// 点击元素
+await mcp__weixin-devtools-mcp__click({ uid: 'view.cuisine-tag_川菜' });
+
+// 截图保存
+await mcp__weixin-devtools-mcp__screenshot({
+  path: 'reports/test-result.png'
+});
+```
 
 ### 2. 测试脚本说明
 

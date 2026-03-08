@@ -3,11 +3,11 @@
  * 根据用户偏好和历史行为推荐菜谱
  */
 
-const cloudbase = require('@cloudbase/node-sdk');
+const cloud = require('wx-server-sdk');
 
 // 初始化云开发环境
-const cloud = cloudbase.init({
-  env: cloudbase.SYMBOL_CURRENT_ENV
+cloud.init({
+  env: cloud.DYNAMIC_CURRENT_ENV
 });
 
 const db = cloud.database();
@@ -18,7 +18,7 @@ const _ = db.command;
  */
 exports.main = async (event, context) => {
   const { limit = 10, refresh = false } = event;
-  const { OPENID } = cloud.getCloudbaseContext(context);
+  const { OPENID } = cloud.getWXContext();
 
   if (!OPENID) {
     // 未登录用户，返回热门推荐
