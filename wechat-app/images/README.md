@@ -51,22 +51,11 @@
 - **选中状态**: `#42A5F5` (淡蓝色)
 - **功能图标**: `#607D8B` (深灰色)
 
-## 重新生成图标
+## 图标来源
 
-如果需要重新生成图标，运行：
+所有图标文件已预置在项目中。如需新增图标，请从 [Heroicons](https://heroicons.com/) 下载并转换为 PNG 格式。
 
-```bash
-cd backend
-
-# 生成 TabBar 图标
-node scripts/generate-icons.js
-
-# 生成功能图标
-node scripts/generate-more-icons.js
-
-# 生成占位图片
-node scripts/generate-placeholders.js
-```
+> 注：原图标生成脚本（backend/scripts/）已随旧后端服务一起移除。现在所有图标都直接存放在本目录中。
 
 ## 注意事项
 

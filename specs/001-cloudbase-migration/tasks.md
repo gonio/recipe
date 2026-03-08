@@ -189,7 +189,7 @@
 - [ ] T066 Create comprehensive README.md with setup instructions, deployment guide, and troubleshooting
 - [ ] T067 Verify all CloudBase console links documented in quickstart.md
 - [ ] T068 Final testing: Run through all user stories end-to-end
-- [ ] T069 Code cleanup and remove any unused files from old Express backend
+- [X] T069 Code cleanup and remove any unused files from old Express backend
 - [ ] T070 Security review: Verify no sensitive data in client-side code, security rules properly configured
 
 ---
