@@ -2,26 +2,21 @@
 ================================================================================
 SYNC IMPACT REPORT
 ================================================================================
-Version Change: 1.0.0 → 1.1.0 (Minor - New principle added, existing principles expanded)
-Modified Principles:
-  - II. API-First Design → Renamed to II. Cloud-Native Architecture (expanded scope)
-  - IV. Separation of Concerns → Updated with CloudBase-specific data access rules
+Version Change: 1.1.0 → 1.2.0 (Minor - New principle added for MCP testing)
+Modified Principles: None
 Added Principles:
-  - III. Platform-Native Authentication (NEW - WeChat Mini Program specific)
-  - VI. CloudBase Best Practices (NEW - MCP tools, SDK direct access)
-Reordered Principles: Yes (Authentication moved to III, Data Integrity to IV)
+  - VIII. Automated Testing with MCP (NEW - WeChat DevTools MCP skill required)
 Added Sections:
-  - CloudBase Platform Requirements
+  - Testing Requirements section in Development Workflow
 Updated Sections:
-  - Technology Stack → Added CloudBase services
-  - Development Workflow → Added MCP tool usage
+  - Development Workflow → Added MCP testing workflow
+  - Technology Stack → Added MCP testing tools
 Templates Requiring Updates:
-  ✅ .specify/templates/plan-template.md - Constitution Check section updated with CloudBase checks
-  ✅ .specify/templates/spec-template.md - Added CloudBase requirements section
-  ✅ .specify/templates/tasks-template.md - Added CloudBase SDK task categories
+  ⚠️ .specify/templates/plan-template.md - Add MCP testing checks
+  ⚠️ .specify/templates/tasks-template.md - Add MCP testing task category
 Follow-up TODOs:
-  - Verify CloudBase environment setup when implementing new features
-  - Ensure MCP configuration is in place for all developers
+  - Update all testing tasks to reference MCP testing skill
+  - Document MCP testing workflow in developer onboarding
 ================================================================================
 -->
 
@@ -118,6 +113,19 @@ The Kimi Claw crawler system MUST reliably acquire and ingest recipe content.
 
 **Rationale**: Automated content acquisition is a key differentiator. Manual content entry does not scale for a recipe discovery platform.
 
+### VIII. Automated Testing with MCP
+
+All end-to-end testing MUST use the WeChat DevTools MCP skill for automated test case execution.
+
+- MUST use `wechat-miniprogram-mcp-testing` skill for WeChat Mini Program E2E tests
+- MUST start WeChat DevTools using `launch-devtools.js` before MCP testing
+- MUST connect MCP tools after DevTools is ready (ws://127.0.0.1:9420)
+- Test cases MUST cover: page navigation, element interaction, data verification
+- MUST generate test reports in `minitest/` directory
+- MUST test critical user flows: browse → favorite → search → detail view
+
+**Rationale**: Manual testing is error-prone and time-consuming. MCP-based automation ensures consistent, repeatable test execution and enables regression testing for WeChat Mini Programs.
+
 ## Technology Stack
 
 **Frontend**: WeChat Mini Program (WXML, WXSS, JavaScript)
@@ -146,6 +154,12 @@ The Kimi Claw crawler system MUST reliably acquire and ingest recipe content.
 - Purpose: Web crawling and content ingestion
 - Scheduling: Daily cron-like execution
 - Integration: API calls to backend endpoints
+
+**Testing**: WeChat DevTools MCP
+- Framework: MCP-based automation (`wechat-miniprogram-mcp-testing` skill)
+- Tools: miniprogram-automator, WeChat DevTools CLI
+- Coverage: E2E tests for all user stories
+- Reports: Markdown format in `minitest/` directory
 
 ## CloudBase Platform Requirements
 
@@ -180,6 +194,14 @@ The Kimi Claw crawler system MUST reliably acquire and ingest recipe content.
 3. **Backend as Needed**: Add cloud functions only when SDK direct access insufficient
 4. **Database Design**: Define NoSQL collections and security rules
 5. **Deployment**: Use MCP tools for cloud function and hosting deployment
+6. **Automated Testing**: Use `wechat-miniprogram-mcp-testing` skill for E2E validation
+
+**MCP Testing Workflow**:
+1. **Start DevTools**: Run `wechat-app/minitest/launch-devtools.js`
+2. **Wait for Ready**: DevTools must be fully started (port 9420 available)
+3. **Connect MCP**: Use MCP `connect_devtools` tool with `wsEndpoint`
+4. **Execute Tests**: Run test scenarios (navigation, interaction, verification)
+5. **Generate Report**: Save test results to `minitest/` directory
 
 **Code Quality Gates**:
 - All API changes MUST be documented in contracts/
@@ -208,4 +230,4 @@ This constitution defines the non-negotiable principles for the 美味食谱 pro
 - Architecture decisions MUST document which principles they uphold
 - CloudBase-specific implementations MUST reference `cloudbase-guidelines`
 
-**Version**: 1.1.0 | **Ratified**: 2026-03-06 | **Last Amended**: 2026-03-06
+**Version**: 1.2.0 | **Ratified**: 2026-03-06 | **Last Amended**: 2026-03-12
