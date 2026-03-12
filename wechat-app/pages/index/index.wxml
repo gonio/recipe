@@ -44,7 +44,7 @@
       </view>
     </scroll-view>
     <view class="filter-btn" bindtap="onShowFilter">
-      <image src="/images/filter.png" mode="aspectFit" class="filter-icon" />
+      <image src="/images/search.png" mode="aspectFit" class="filter-icon" />
     </view>
   </view>
 
@@ -74,7 +74,7 @@
 
   <!-- 空状态 -->
   <view class="empty-state" wx:else>
-    <image src="/images/empty-recipes.png" mode="aspectFit" class="empty-icon" />
+    <image src="/images/empty-favorites.png" mode="aspectFit" class="empty-icon" />
     <text class="empty-title">还没有菜谱</text>
     <text class="empty-desc">去 Market 发现更多美味！</text>
     <view class="explore-btn" bindtap="goToMarket">

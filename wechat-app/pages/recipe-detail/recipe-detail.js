@@ -156,8 +156,18 @@ Page({
     return {
       title: recipe?.name || '美味食谱',
       path: `/pages/recipe-detail/recipe-detail?id=${this.data.recipeId}`,
-      imageUrl: recipe?.imageUrl || '/images/share-default.png'
+      imageUrl: recipe?.imageUrl || '/images/share.png'
     };
+  },
+
+  /**
+   * 图片加载失败
+   */
+  onImageError() {
+    console.log('详情页图片加载失败，使用默认图片');
+    this.setData({
+      'recipe.imageUrl': '/images/default-food.png'
+    });
   },
 
   /**

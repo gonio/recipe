@@ -17,7 +17,7 @@
     >
       <text class="cuisine-name">{{item}}</text>
       <view class="check-icon" wx:if="{{selectedCuisines.includes(item)}}">
-        <image src="/images/check-white.png" mode="aspectFit" />
+        <image src="/images/check.png" mode="aspectFit" class="check-white" />
       </view>
     </view>
   </view>

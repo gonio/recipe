@@ -70,6 +70,10 @@
   height: 100%;
 }
 
+.check-white {
+  filter: brightness(0) invert(1);
+}
+
 /* 保存区域 */
 .save-section {
   position: fixed;

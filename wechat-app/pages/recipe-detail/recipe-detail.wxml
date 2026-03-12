@@ -18,16 +18,17 @@
     <view class="hero-section">
       <image
         class="hero-image"
-        src="{{recipe.imageUrl || '/images/default-recipe.png'}}"
+        src="{{recipe.imageUrl || '/images/default-food.png'}}"
         mode="aspectFill"
         bindtap="previewImage"
         lazy-load
+        binderror="onImageError"
       />
       <view class="image-overlay"></view>
 
       <!-- 返回按钮 -->
       <view class="back-btn" bindtap="goBack">
-        <image src="/images/arrow-left-white.png" mode="aspectFit" />
+        <image src="/images/back.png" mode="aspectFit" class="back-icon" />
       </view>
 
       <!-- 热门标签 -->
@@ -86,7 +87,7 @@
       <!-- 食材列表 -->
       <view class="section" wx:if="{{recipe.ingredients && recipe.ingredients.length > 0}}">
         <view class="section-header">
-          <image src="/images/ingredients.png" mode="aspectFit" class="section-icon" />
+          <image src="/images/category.png" mode="aspectFit" class="section-icon" />
           <text class="section-title">食材准备</text>
         </view>
         <view class="ingredients-list">
@@ -100,7 +101,7 @@
       <!-- 烹饪步骤 -->
       <view class="section" wx:if="{{recipe.steps && recipe.steps.length > 0}}">
         <view class="section-header">
-          <image src="/images/steps.png" mode="aspectFit" class="section-icon" />
+          <image src="/images/star.png" mode="aspectFit" class="section-icon" />
           <text class="section-title">烹饪步骤</text>
         </view>
         <view class="steps-list">
@@ -133,7 +134,7 @@
 
   <view class="favorite-btn {{isFavorited ? 'active' : ''}}" bindtap="toggleFavorite">
     <image
-      src="{{isFavorited ? '/images/heart-filled-white.png' : '/images/heart-outline-white.png'}}"
+      src="{{isFavorited ? '/images/heart-filled-white.png' : '/images/heart-white.png'}}"
       mode="aspectFit"
     />
     <text>{{isFavorited ? '已收藏' : '收藏'}}</text>

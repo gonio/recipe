@@ -114,7 +114,7 @@ Component({
     onImageError() {
       console.log('菜谱图片加载失败，使用默认图片');
       this.setData({
-        'recipe.imageUrl': '/images/default-recipe.png'
+        'recipe.imageUrl': '/images/default-food.png'
       });
     },
 

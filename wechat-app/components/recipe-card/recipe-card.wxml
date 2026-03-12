@@ -4,9 +4,10 @@
   <view class="image-container">
     <image
       class="recipe-image"
-      src="{{recipe.imageUrl || '/images/default-recipe.png'}}"
+      src="{{recipe.imageUrl || '/images/default-food.png'}}"
       mode="aspectFill"
       lazy-load="{{true}}"
+      binderror="onImageError"
     />
     <!-- 热门标签 -->
     <view class="heat-badge" wx:if="{{recipe.heatScore > 50}}">
@@ -16,7 +17,7 @@
     <view class="favorite-btn" catchtap="onToggleFavorite" hover-class="btn-hover">
       <image
         class="favorite-icon"
-        src="{{isFavorited ? '/images/heart-filled.png' : '/images/heart-outline.png'}}"
+        src="{{isFavorited ? '/images/heart-filled.png' : '/images/heart.png'}}"
         mode="aspectFit"
       />
     </view>
@@ -39,7 +40,7 @@
     <!-- 底部信息 -->
     <view class="bottom-row">
       <view class="favorite-count">
-        <image class="small-icon" src="/images/heart-small.png" mode="aspectFit" />
+        <image class="small-icon" src="/images/heart.png" mode="aspectFit" />
         <text class="count-text">{{recipe.favoriteCount || 0}}</text>
       </view>
       <!-- Market 类型标签 -->
