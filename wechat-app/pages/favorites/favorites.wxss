@@ -61,6 +61,102 @@
   color: #999999;
 }
 
+/* 长按操作菜单遮罩 */
+.action-menu-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  z-index: 1000;
+}
+
+/* 操作菜单 */
+.action-menu {
+  background: #FFFFFF;
+  border-radius: 24rpx 24rpx 0 0;
+  padding: 24rpx 0 48rpx;
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.action-menu-header {
+  padding: 24rpx 48rpx;
+  border-bottom: 1rpx solid #F0F0F0;
+  margin-bottom: 16rpx;
+}
+
+.action-menu-title {
+  font-size: 30rpx;
+  color: #666666;
+  display: block;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.action-menu-items {
+  padding: 8rpx 24rpx;
+}
+
+.action-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32rpx 48rpx;
+  margin: 0 24rpx;
+  border-radius: 16rpx;
+  background: #F8F9FA;
+  gap: 16rpx;
+}
+
+.action-menu-item.danger {
+  background: #FFEBEE;
+}
+
+.action-menu-item.danger text {
+  color: #E53935;
+}
+
+.action-icon {
+  width: 40rpx;
+  height: 40rpx;
+  opacity: 0.8;
+}
+
+.action-menu-item text {
+  font-size: 32rpx;
+  color: #333333;
+  font-weight: 500;
+}
+
+.action-menu-cancel {
+  margin: 24rpx 48rpx 0;
+  padding: 28rpx 48rpx;
+  background: #F5F5F5;
+  border-radius: 16rpx;
+  text-align: center;
+}
+
+.action-menu-cancel text {
+  font-size: 32rpx;
+  color: #333333;
+  font-weight: 500;
+}
+
 /* 空状态 */
 .empty-state {
   display: flex;

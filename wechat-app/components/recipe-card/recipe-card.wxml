@@ -1,5 +1,5 @@
 <!-- 菜谱卡片组件 -->
-<view class="recipe-card" bindtap="onTapCard" hover-class="card-hover">
+<view class="recipe-card" bindtap="onTapCard" bindlongpress="onLongPressCard" hover-class="card-hover">
   <!-- 菜谱图片 -->
   <view class="image-container">
     <image

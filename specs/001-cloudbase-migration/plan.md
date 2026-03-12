@@ -1,31 +1,31 @@
 # Implementation Plan: CloudBase Migration and UI Redesign
 
-**Branch**: `001-cloudbase-migration` | **Date**: 2026-03-06 | **Spec**: [spec.md](./spec.md)
+**Branch**: `001-cloudbase-migration` | **Date**: 2026-03-08 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/001-cloudbase-migration/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
 
 ## Summary
 
-Migrate the 美味食谱 (Delicious Recipes) WeChat Mini Program from a self-hosted Express/MongoDB backend to CloudBase platform. Redesign the UI with modern aesthetics following the light blue (#42A5F5) theme. Implement intelligent daily recipe curation using CloudBase scheduled triggers and AI model search (Hunyuan/DeepSeek) with deduplication logic. Fix all existing functional bugs discovered during testing.
-
-**Primary Technical Approach**:
-- Frontend: Refactor WeChat Mini Program pages with redesigned UI components
-- Database: Migrate from MongoDB to CloudBase NoSQL with data integrity
-- Backend: Replace Express APIs with CloudBase SDK direct access + Cloud Functions
-- Automation: CloudBase scheduled triggers + AI integration for daily recipe curation
+将美味食谱小程序从自托管 Express/MongoDB 后端迁移至 CloudBase 云开发平台。采用微信小程序原生框架 + CloudBase 云函数架构，实现无感知微信登录、每日 AI 菜谱精选、智能推荐等功能。UI 采用淡蓝色主题（#42A5F5）的卡片式布局设计。
 
 ## Technical Context
 
-**Language/Version**: JavaScript (ES6+), Node.js 18+
-**Primary Dependencies**: WeChat Mini Program Framework, CloudBase SDK (`wx.cloud` / `@cloudbase/node-sdk`)
-**Storage**: CloudBase NoSQL (Document Database)
-**Testing**: Manual testing via WeChat Developer Tools
-**Target Platform**: WeChat Mini Program (iOS/Android)
-**Project Type**: mobile-app
-**Performance Goals**: Page load < 2s on 4G, visual feedback < 300ms
-**Constraints**: Must work offline gracefully, limited to CloudBase free tier quotas initially
-**Scale/Scope**: Single user base, ~100-1000 recipes initially, daily 2 new recipe additions
+<!--
+  ACTION REQUIRED: Replace the content in this section with the technical details
+  for the project. The structure here is presented in advisory capacity to guide
+  the iteration process.
+-->
+
+**Language/Version**: JavaScript ES6+ / Node.js 18+
+**Primary Dependencies**: WeChat Mini Program Framework, CloudBase SDK (`wx.cloud` / `@cloudbase/node-sdk`), miniprogram-automator
+**Storage**: CloudBase NoSQL Database (recipes, users, ai_generation_logs, market_daily collections)
+**Testing**: MCP-based E2E testing via WeChat DevTools MCP, miniprogram-automator
+**Target Platform**: WeChat Mini Program (微信开发者工具 + 真机)
+**Project Type**: mobile-app (微信小程序)
+**Performance Goals**: Page load < 2s on 4G, favorite action feedback < 300ms
+**Constraints**: < 2MB per cloud function, CloudBase service quotas, WeChat Mini Program size limits
+**Scale/Scope**: Personal recipe app, ~100 recipes initially, single user focus
 
 ## Constitution Check
 
@@ -34,150 +34,113 @@ Migrate the 美味食谱 (Delicious Recipes) WeChat Mini Program from a self-hos
 Refer to `.specify/memory/constitution.md` for project principles.
 
 **UX First**: Does this feature respect WeChat Mini Program UX guidelines?
-- [x] Page load time under 2 seconds considered? (FR-010, SC-002)
-- [x] User feedback mechanisms defined? (FR-011)
-- [x] Error states have recovery paths? (Edge cases documented)
+- [x] Page load time under 2 seconds considered?
+- [x] User feedback mechanisms defined?
+- [x] Error states have recovery paths?
 
 **Cloud-Native Architecture**: Is CloudBase properly utilized?
-- [x] CloudBase SDK direct access considered for simple operations? (FR-004)
-- [x] RESTful patterns followed for custom APIs? (N/A - fully SDK-based)
-- [x] Consistent JSON response format documented? (Will document in contracts/)
+- [x] CloudBase SDK direct access considered for simple operations?
+- [x] RESTful patterns followed for custom APIs (/api/[resource]/[action])?
+- [x] Consistent JSON response format documented?
 
 **Platform-Native Authentication**: Is WeChat login properly handled?
-- [x] No explicit login required (natural login-free)? (FR-005, SC-008)
-- [x] OpenID obtained via wxContext in cloud functions? (User Story 2)
+- [x] No explicit login required (natural login-free)?
+- [x] OpenID obtained via wxContext in cloud functions?
 
 **Data Integrity**: Is data handling robust?
-- [x] Schema validation defined for all writes? (Key Entities section)
-- [x] Required fields identified? (Recipe: name, cuisine, ingredients, steps, cookTime, difficulty)
-- [ ] CloudBase security rules configured for data access? (Phase 1 deliverable)
-- [x] No sensitive data in version control? (.gitignore configured)
+- [x] Schema validation defined for all writes?
+- [x] Required fields identified (name, cuisine, ingredients, steps)?
+- [x] CloudBase security rules configured for data access?
+- [x] No sensitive data in version control?
 
 **Separation of Concerns**: Are architectural boundaries clear?
-- [x] Frontend uses CloudBase SDK or API? (FR-004)
-- [x] Business logic resides in appropriate layer? (SDK for CRUD, Cloud Functions for AI/scheduled tasks)
-- [x] Each component independently testable? (User stories independently testable)
+- [x] Frontend uses CloudBase SDK or API (no direct DB connection strings)?
+- [x] Business logic resides in appropriate layer (SDK vs cloud function)?
+- [x] Each component independently testable?
 
 **CloudBase Best Practices**: Are platform guidelines followed?
-- [x] `cloudbase-guidelines` skill referenced? (Constitution VI)
-- [x] MCP tools available? (Dependencies listed)
-- [ ] Console management links documented? (Post-deployment deliverable)
+- [x] `cloudbase-guidelines` skill referenced for CloudBase features?
+- [x] MCP tools available for CloudBase operations?
+- [x] Console management links documented?
 
-**Content Automation**: Does this feature involve automated content?
-- [x] AI integration points documented? (FR-009, User Story 3)
-- [x] Duplicate detection considered? (FR-013: 80% name similarity, heat score comparison)
-
-**Gate Status**: ✅ PASS - All critical checks satisfied. Minor items (security rules, console links) are Phase 1 deliverables.
+**Content Automation**: Does this affect the crawler?
+- [x] Crawler integration points documented (if applicable)?
+- [x] Duplicate detection considered (if content-related)?
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/001-cloudbase-migration/
+specs/[###-feature]/
 ├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output (CloudBase best practices, AI integration patterns)
-├── data-model.md        # Phase 1 output (NoSQL schema, relationships, validation rules)
-├── quickstart.md        # Phase 1 output (Development setup, deployment guide)
-├── contracts/           # Phase 1 output (Cloud Function interfaces, SDK usage patterns)
-│   ├── cloud-functions.md
-│   └── frontend-sdk.md
-└── tasks.md             # Phase 2 output (/speckit.tasks command)
+├── research.md          # Phase 0 output (/speckit.plan command)
+├── data-model.md        # Phase 1 output (/speckit.plan command)
+├── quickstart.md        # Phase 1 output (/speckit.plan command)
+├── contracts/           # Phase 1 output (/speckit.plan command)
+└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
 ```
 
 ### Source Code (repository root)
-
-**Structure Decision**: WeChat Mini Program + CloudBase Cloud Functions architecture
+<!--
+  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
+  for this feature. Delete unused options and expand the chosen structure with
+  real paths (e.g., apps/admin, packages/something). The delivered plan must
+  not include Option labels.
+-->
 
 ```text
-wechat-app/                    # WeChat Mini Program (existing - refactored)
-├── pages/
-│   ├── index/                 # Homepage - redesigned recipe list
-│   ├── market/                # Market tab - daily curated recipes
-│   ├── favorites/             # My Recipes tab
-│   ├── recommend/             # Today's Recommendation tab
-│   ├── profile/               # User profile & settings
-│   └── recipe-detail/         # Recipe detail page - redesigned
-├── components/
-│   ├── recipe-card/           # Reusable recipe card component
-│   ├── search-bar/            # Search component
-│   ├── filter-modal/          # Cuisine filter modal
-│   └── loading-skeleton/      # Loading states
-├── utils/
-│   ├── cloudbase.js           # CloudBase SDK initialization & helpers
-│   ├── recipe-api.js          # Recipe data access (SDK calls)
-│   ├── user-api.js            # User data access (SDK calls)
-│   └── ui-helpers.js          # UI utilities (animations, formatters)
-├── images/                    # Static assets
-├── app.js                     # App entry - CloudBase init
-├── app.json                   # App configuration
-└── app.wxss                   # Global styles - light blue theme
+wechat-app/                    # 微信小程序前端
+├── pages/                     # 页面文件
+│   ├── index/                 # 首页 - 菜谱列表
+│   ├── market/                # Market - 每日精选
+│   ├── recommend/             # 今日推荐
+│   ├── favorites/             # 我的收藏
+│   ├── search/                # 搜索页面
+│   ├── recipe-detail/         # 菜谱详情
+│   ├── profile/               # 个人中心
+│   └── preferences/           # 偏好设置
+├── components/                # 可复用组件
+│   ├── recipe-card/           # 菜谱卡片
+│   ├── search-bar/            # 搜索栏
+│   ├── filter-modal/          # 筛选弹窗
+│   ├── loading-skeleton/      # 骨架屏
+│   └── network-status/        # 网络状态提示
+├── utils/                     # 工具函数
+│   ├── cloudbase.js           # CloudBase SDK 初始化
+│   ├── recipe-api.js          # 菜谱相关 API
+│   ├── user-api.js            # 用户相关 API
+│   └── ui-helpers.js          # UI 辅助函数
+├── images/                    # 图片资源
+├── app.js                     # 小程序入口
+├── app.json                   # 全局配置
+└── app.wxss                   # 全局样式
 
-cloudfunctions/                # CloudBase Cloud Functions (new)
-├── auth/                      # User authentication (OpenID)
-│   └── index.js
-├── recipe-daily-curation/     # Daily AI recipe curation (scheduled)
-│   └── index.js
-├── recipe-recommend/          # Personalized recommendations
-│   └── index.js
-└── shared/                    # Shared utilities (if needed)
-    └── utils.js
+cloudfunctions/                # CloudBase 云函数
+├── auth/                      # 用户认证
+├── recipe-recommend/          # 智能推荐
+├── user-toggle-favorite/      # 收藏切换
+└── recipe-daily-curation/     # 每日精选（定时触发）
 
-scripts/                       # Utility scripts
-├── data-migration/            # MongoDB to CloudBase migration
-│   ├── export-mongodb.js
-│   ├── transform-data.js
-│   └── import-cloudbase.js
-└── test-data/                 # Test data generation
-    └── seed-recipes.js
+minitest/                      # MCP 自动化测试
+├── test-suite-complete.js     # 完整测试套件
+├── test-market.js             # Market 页面测试
+├── test-favorite.js           # 收藏功能测试
+└── launch-devtools.js         # 开发工具启动脚本
 
-config/                        # Configuration
-├── cloudbase-security-rules.json   # Database security rules
-└── scheduled-triggers.json    # CloudBase trigger config
+scripts/data-migration/        # 数据迁移脚本
+├── export-mongodb.js
+├── transform-data.js
+└── import-cloudbase.js
 ```
+
+**Structure Decision**: 采用微信小程序标准目录结构 + CloudBase 云函数架构。前端使用微信小程序原生框架（WXML/WXSS/JS），后端功能通过 CloudBase 云函数实现，数据存储使用 CloudBase NoSQL 数据库。测试采用 MCP 自动化测试框架。
 
 ## Complexity Tracking
 
-| Decision | Rationale | Simpler Alternative Rejected |
-|-----------|-----------|------------------------------|
-| Cloud Functions for AI curation instead of SDK direct | Scheduled triggers only work in Cloud Functions; AI API calls need server-side execution | SDK direct access from frontend rejected - cannot schedule and would expose API keys |
-| Separate recipe-card component | Reusable across homepage, market, favorites, search results | Inline cards rejected - duplication and maintenance overhead |
-| Name similarity (80%) + heat score for deduplication | Balances precision (avoid false duplicates) with flexibility (catch variations) | Exact match rejected - would miss recipe variations with different authors/sources |
+> **Fill ONLY if Constitution Check has violations that must be justified**
 
----
-
-## Phase 0: Research
-
-**Status**: Research topics identified below. Research findings will be documented in `research.md`.
-
-### Research Topics
-
-1. **CloudBase Scheduled Triggers**: Configuration, limitations, error handling, retry mechanisms
-2. **CloudBase AI SDK**: Model availability (Hunyuan vs DeepSeek), web search capabilities, response parsing
-3. **WeChat Mini Program Performance**: Best practices for <2s page load, image lazy loading, skeleton screens
-4. **Name Similarity Algorithm**: Efficient string similarity for Chinese recipe names (Levenshtein, Jaro-Winkler, or embedding-based)
-5. **Data Migration Strategy**: MongoDB to CloudBase NoSQL schema mapping, batch import, validation
-
-**Decision Required**:
-- [ ] Which AI model for recipe search? (Hunyuan vs DeepSeek vs hybrid)
-- [ ] Name similarity algorithm implementation choice
-- [ ] Image storage strategy (CloudBase Storage vs external URLs)
-
----
-
-## Phase 1: Design (Pending Phase 0 Completion)
-
-**Prerequisites**: All [NEEDS CLARIFICATION] items in research.md must be resolved
-
-**Planned Outputs**:
-1. `data-model.md` - NoSQL schema with validation rules, indexes, relationships
-2. `contracts/cloud-functions.md` - Cloud Function interfaces (auth, curation, recommend)
-3. `contracts/frontend-sdk.md` - SDK usage patterns for frontend
-4. `quickstart.md` - Developer setup, deployment steps, testing guide
-5. Agent context update via `update-agent-context.sh`
-
-**Re-evaluation**: Constitution Check will be re-run after Phase 1 to verify design compliance.
-
----
-
-*Plan generation complete. Run `/speckit.research` to begin Phase 0 research, or proceed directly to `/speckit.tasks` if all technical decisions are already clear.*
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|-----------|------------|-------------------------------------|
+| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |

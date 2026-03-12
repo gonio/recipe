@@ -12,7 +12,10 @@ Page({
     isLoadingMore: false,
     hasMore: true,
     page: 0,
-    pageSize: 10
+    pageSize: 10,
+    // 长按菜单相关
+    showActionMenu: false,
+    selectedRecipe: null
   },
 
   onLoad() {
@@ -146,6 +149,70 @@ Page({
       hideLoading();
       showError('操作失败');
       console.error('切换收藏失败:', error);
+    }
+  },
+
+  /**
+   * 长按菜谱卡片 - 显示操作菜单
+   */
+  onRecipeLongPress(e) {
+    const { recipe } = e.detail;
+    this.setData({
+      showActionMenu: true,
+      selectedRecipe: recipe
+    });
+  },
+
+  /**
+   * 关闭操作菜单
+   */
+  onCloseActionMenu() {
+    this.setData({
+      showActionMenu: false,
+      selectedRecipe: null
+    });
+  },
+
+  /**
+   * 阻止事件冒泡
+   */
+  preventBubble() {
+    // 什么都不做，只是阻止冒泡
+  },
+
+  /**
+   * 确认取消收藏
+   */
+  async onUnfavoriteConfirm() {
+    const { selectedRecipe } = this.data;
+    if (!selectedRecipe) return;
+
+    this.setData({ showActionMenu: false });
+
+    try {
+      showLoading('处理中...');
+      await toggleFavorite(selectedRecipe._id, false);
+      hideLoading();
+
+      // 更新本地列表（移除已取消收藏的菜谱）
+      const { favorites } = this.data;
+      const updatedFavorites = favorites.filter(item => item._id !== selectedRecipe._id);
+      this.setData({
+        favorites: updatedFavorites,
+        selectedRecipe: null
+      });
+
+      wx.showToast({
+        title: '已取消收藏',
+        icon: 'success'
+      });
+
+      // 标记收藏列表需要刷新
+      getApp().markFavoritesNeedRefresh();
+    } catch (error) {
+      hideLoading();
+      showError('操作失败');
+      console.error('取消收藏失败:', error);
     }
   },
 

@@ -32,6 +32,11 @@ Component({
     showAnimation: {
       type: Boolean,
       value: true
+    },
+    // 是否启用长按菜单
+    enableLongPress: {
+      type: Boolean,
+      value: false
     }
   },
 
@@ -110,6 +115,24 @@ Component({
       console.log('菜谱图片加载失败，使用默认图片');
       this.setData({
         'recipe.imageUrl': '/images/default-recipe.png'
+      });
+    },
+
+    /**
+     * 长按卡片
+     */
+    onLongPressCard() {
+      const { recipe, enableLongPress } = this.properties;
+
+      // 只有在启用长按功能时才触发事件
+      if (!enableLongPress || !recipe || !recipe._id) {
+        return;
+      }
+
+      // 触发长按事件
+      this.triggerEvent('longpress', {
+        recipeId: recipe._id,
+        recipe: recipe
       });
     }
   }
