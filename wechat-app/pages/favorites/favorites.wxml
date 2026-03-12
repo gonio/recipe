@@ -16,9 +16,29 @@
         recipe="{{item}}"
         showFavorite="{{true}}"
         isFavorited="{{true}}"
+        enableLongPress="{{true}}"
         bind:tap="onRecipeTap"
         bind:favorite="onToggleFavorite"
+        bind:longpress="onRecipeLongPress"
       />
+    </view>
+
+    <!-- 长按操作菜单 -->
+    <view wx:if="{{showActionMenu}}" class="action-menu-mask" bindtap="onCloseActionMenu">
+      <view class="action-menu" catchtap="preventBubble">
+        <view class="action-menu-header">
+          <text class="action-menu-title">{{selectedRecipe && selectedRecipe.name}}</text>
+        </view>
+        <view class="action-menu-items">
+          <view class="action-menu-item danger" bindtap="onUnfavoriteConfirm">
+            <image src="/images/heart.png" class="action-icon" />
+            <text>取消收藏</text>
+          </view>
+        </view>
+        <view class="action-menu-cancel" bindtap="onCloseActionMenu">
+          <text>取消</text>
+        </view>
+      </view>
     </view>
 
     <!-- 加载更多 -->

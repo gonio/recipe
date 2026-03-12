@@ -53,11 +53,17 @@ Users can collect favorite recipes and receive personalized recommendations base
 
 1. **Given** the user finds a recipe they like, **When** they tap the favorite button, **Then** the recipe is saved to their collection with visual confirmation (heart animation or toast)
 
-2. **Given** the user has favorited recipes, **When** they navigate to "My Recipes" tab, **Then** they see all their saved recipes in the same beautiful layout as the homepage
+2. **Given** the user has favorited recipes from the Market, **When** they navigate to "My Recipes" tab, **Then** they see all their saved recipes in the same beautiful layout as the homepage
+
+3. **Given** the user is viewing their saved recipes in "My Recipes", **When** they long-press on a recipe card, **Then** a context menu appears with "取消收藏" (Unfavorite) option
+
+4. **Given** the user long-presses a recipe card in "My Recipes", **When** they select "取消收藏", **Then** the recipe is removed from their collection with visual confirmation
 
 3. **Given** the user has set cuisine preferences, **When** they open "Today's Recommendation", **Then** they see recipes matching their preferences with a visually appealing presentation
 
 4. **Given** the user uses the app for the first time, **When** they interact with any feature requiring user identity, **Then** it works seamlessly without explicit login/registration screens
+
+5. **Given** the user is viewing "My Recipes" tab, **When** they examine the recipe list, **Then** they only see recipes they have previously favorited from the Market (no add-to-favorite action, only unfavorite via long-press)
 
 ---
 
@@ -150,6 +156,8 @@ All existing features work reliably without bugs, providing a smooth user experi
 - **FR-015**: System MUST track recipe heat scores combining internal favoriteCount with external popularity metrics (when available from AI search) to determine which version to keep
 
 - **FR-016**: System MUST use Chinese for code comments, UI text, and documentation; code variables, function names, and file paths remain in English
+
+- **FR-017**: "My Recipes" (favorites) page MUST only display recipes that the user has already favorited from the Market; the only available action is "unfavorite" (取消收藏) triggered via long-press on the recipe card, which shows a context menu
 
 ### Key Entities *(include if feature involves data)*
 
@@ -276,3 +284,7 @@ This feature uses **WeChat Developer Tools MCP** for automated end-to-end testin
 - **Q**: 每天生成多少道菜谱？→ **A**: 每天生成 2 道。智能去重：AI 搜索新菜谱，与现有库对比，仅添加不重复的或热度（点赞/收藏）更高的版本。若当天无新内容，则从现有菜谱中推荐 2 道适合当天制作的菜。
 
 - **Q**: 项目开发语言要求？→ **A**: 代码注释、UI 文本、文档使用中文；代码变量名、函数名、文件路径保持英文（已修正：此前理解有误，变量和函数名应为英文）
+
+### Session 2026-03-08
+
+- **Q**: "我的菜谱"页面的功能定义是什么？→ **A**: "我的菜谱"只展示从市场收藏的菜谱，功能上只有取消收藏，通过长按卡片触发显示取消收藏选项

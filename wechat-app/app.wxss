@@ -249,3 +249,59 @@ page {
   background: var(--border-color);
   margin: 20rpx 0;
 }
+
+/* 响应式设计 - 适配不同屏幕尺寸 */
+
+/* 大屏幕平板适配 (iPad 等) */
+@media (min-width: 768px) {
+  .container {
+    max-width: 750rpx;
+    margin: 0 auto;
+  }
+
+  .grid-2 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .card {
+    margin-bottom: 30rpx;
+  }
+}
+
+/* 小屏幕手机适配 */
+@media (max-width: 375px) {
+  .container {
+    padding: 20rpx;
+  }
+
+  .section-title {
+    font-size: 32rpx;
+  }
+
+  .btn {
+    padding: 20rpx 32rpx;
+    font-size: 28rpx;
+  }
+}
+
+/* 安全区域适配 (刘海屏) */
+.safe-area-top {
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 横屏适配 */
+@media (orientation: landscape) {
+  .landscape-hide {
+    display: none;
+  }
+
+  .grid-2 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
