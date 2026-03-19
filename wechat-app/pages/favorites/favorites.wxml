@@ -14,10 +14,11 @@
         wx:for="{{favorites}}"
         wx:key="_id"
         recipe="{{item}}"
-        showFavorite="{{true}}"
+        showFavorite="{{false}}"
         isFavorited="{{true}}"
         enableLongPress="{{true}}"
-        bind:tap="onRecipeTap"
+        externalNavigation="{{true}}"
+        bind:tapCard="onRecipeTap"
         bind:favorite="onToggleFavorite"
         bind:longpress="onRecipeLongPress"
       />
