@@ -37,6 +37,16 @@ Component({
     enableLongPress: {
       type: Boolean,
       value: false
+    },
+    // 是否显示收藏按钮（默认显示）
+    showFavorite: {
+      type: Boolean,
+      value: true
+    },
+    // 是否由父页面处理导航（为 true 时，组件只触发事件，不自行跳转）
+    externalNavigation: {
+      type: Boolean,
+      value: false
     }
   },
 
@@ -81,10 +91,12 @@ Component({
         recipe: recipe
       });
 
-      // 跳转到详情页
-      wx.navigateTo({
-        url: `/pages/recipe-detail/recipe-detail?id=${recipe._id}`
-      });
+      // 默认由组件自行导航；若父页面设置 externalNavigation=true，则由父页面处理
+      if (!this.properties.externalNavigation) {
+        wx.navigateTo({
+          url: `/pages/recipe-detail/recipe-detail?id=${recipe._id}`
+        });
+      }
     },
 
     /**

@@ -13,8 +13,8 @@
     <view class="heat-badge" wx:if="{{recipe.heatScore > 50}}">
       <text class="heat-text">热门</text>
     </view>
-    <!-- 收藏按钮 -->
-    <view class="favorite-btn" catchtap="onToggleFavorite" hover-class="btn-hover">
+    <!-- 收藏按钮（可通过 showFavorite 属性控制显示） -->
+    <view class="favorite-btn" wx:if="{{showFavorite}}" catchtap="onToggleFavorite" hover-class="btn-hover">
       <image
         class="favorite-icon"
         src="{{isFavorited ? '/images/heart-filled.png' : '/images/heart.png'}}"
