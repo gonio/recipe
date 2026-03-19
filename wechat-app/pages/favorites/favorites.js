@@ -114,12 +114,13 @@ Page({
   },
 
   /**
-   * 点击菜谱卡片
+   * 点击菜谱卡片（由 recipe-card 的 tapCard 事件触发）
    */
   onRecipeTap(e) {
-    const { id } = e.currentTarget.dataset;
+    const { recipeId } = e.detail;
+    if (!recipeId) return;
     wx.navigateTo({
-      url: `/pages/recipe-detail/recipe-detail?id=${id}`
+      url: `/pages/recipe-detail/recipe-detail?id=${recipeId}&from=favorites`
     });
   },
 
